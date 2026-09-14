@@ -279,7 +279,7 @@ async function serverStatusOnBoot() {
     note.textContent = "Local server: NOT responding ✗ — run  npm start  in ~/canvas-pro and keep it open.";
     note.style.color = "var(--red)";
   } else if (!proxyOk) {
-    note.textContent = "This mirror can't reach Canvas — use https://canvas-pro-suite-beta.vercel.app for full features.";
+    note.textContent = "This mirror can't reach Canvas — use https://canvas-pro-suite.pages.dev for full features.";
     note.style.color = "var(--orange)";
   } else {
     note.textContent = "Hosted mode ✓ — Canvas features available.";

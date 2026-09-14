@@ -1,16 +1,18 @@
 # Public mirrors
 
 The same build is deployed to several free hosts so the app keeps working even when
-a school network blocks one of them. Canvas sync works on hosts that serve the
-serverless proxy (`api/canvas.py`, `api/dl.py`); on static-only mirrors the app shows
-a notice and the calculator/reference tools still work.
+a school network blocks one of them — including Vercel, which many districts block.
 
 | Host | URL | Canvas sync | Auto-deploy |
 | ---- | --- | ----------- | ----------- |
-| Vercel | https://canvas-pro-suite-beta.vercel.app | yes | `vercel deploy --prod --yes` (or Git integration) |
-| GitHub Pages | https://morpis-jpg.github.io/canvas-pro-suite/ | no (static) | `.github/workflows/pages.yml` on `beta` |
-| Firebase Hosting | https://canvas-pro-suite.web.app | no (static) | `.github/workflows/firebase-hosting.yml` on `beta` |
-| Cloudflare Pages | https://canvas-pro-suite.pages.dev | no (static) | `.github/workflows/cloudflare-pages.yml` on `beta` |
+| Cloudflare Pages | https://canvas-pro-suite.pages.dev | yes — Pages Functions proxy (`functions/api/canvas.js`, `functions/api/dl.js`) | `.github/workflows/cloudflare-pages.yml` on `beta` |
+| Vercel | https://canvas-pro-suite-beta.vercel.app | yes — Python functions (`api/canvas.py`, `api/dl.py`) | `vercel deploy --prod --yes` |
+| GitHub Pages | https://morpis-jpg.github.io/canvas-pro-suite/ | no (static only) | `.github/workflows/pages.yml` on `beta` |
+| Firebase Hosting | https://canvas-pro-suite.web.app | no (static only) | `.github/workflows/firebase-hosting.yml` on `beta` |
+
+Static-only mirrors still run the full calculator, reference sheets, and saved
+data; they show a notice pointing at the Cloudflare mirror when Canvas features
+are unavailable. Nothing routes through Vercel.
 
 ## Setting up Firebase Hosting (one time)
 
@@ -37,6 +39,6 @@ a notice and the calculator/reference tools still work.
 
 ## School-Wi-Fi notes
 
-If every mirror is blocked, ask district IT to allowlist the Vercel URL
-(`canvas-pro-suite-beta.vercel.app`). Local use is always available and cannot be
-blocked: `npm start` then open http://localhost:8000.
+If every full-feature mirror is blocked, ask district IT to allowlist
+`canvas-pro-suite.pages.dev` (Cloudflare — full features) or use the local server,
+which cannot be blocked: `npm start` then open http://localhost:8000.

@@ -10,6 +10,7 @@
       "server.py",
       "api/canvas.py",
       "api/dl.py",
+      "functions",
       "**/__pycache__/**",
       "*.pyc"
     ]

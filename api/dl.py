@@ -8,6 +8,16 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_args):
         return
 
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "X-Canvas-Token, X-Canvas-Base, Content-Type, Accept")
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._cors()
+        self.end_headers()
+
     def do_GET(self):
         query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
         target = query.get("u", [""])[0]
