@@ -265,11 +265,26 @@ const probeL = {
 async function serverStatusOnBoot() {
   const note = $("#serverNote");
   if (!note) return;
-  const alive = await probeL.serverAlive();
-  note.textContent = alive
-    ? "Local server: detected ✓ (npm start is running)"
-    : "Local server: NOT responding ✗ — run  npm start  in ~/canvas-pro and keep it open.";
-  note.style.color = alive ? "" : "var(--red)";
+  let staticOk = false, proxyOk = false;
+  try {
+    staticOk = (await fetch("/version.json?probe=" + Date.now(), { cache: "no-store" })).ok;
+  } catch {}
+  if (staticOk) {
+    try {
+      const r = await fetch("/api/canvas?p=%2Fhealth", { cache: "no-store", method: "GET" });
+      proxyOk = r.status === 400 || r.status === 401 || r.status === 403 || r.status === 422;
+    } catch {}
+  }
+  if (!staticOk) {
+    note.textContent = "Local server: NOT responding ✗ — run  npm start  in ~/canvas-pro and keep it open.";
+    note.style.color = "var(--red)";
+  } else if (!proxyOk) {
+    note.textContent = "This mirror can't reach Canvas — use https://canvas-pro-suite-beta.vercel.app for full features.";
+    note.style.color = "var(--orange)";
+  } else {
+    note.textContent = "Hosted mode ✓ — Canvas features available.";
+    note.style.color = "";
+  }
 }
 
 async function init() {

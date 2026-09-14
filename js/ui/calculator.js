@@ -1,6 +1,6 @@
 import { settings } from "../storage.js";
 
-const MATHJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.0.3/math.min.js";
+const MATHJS_URL = "/vendor/math.min.js";
 let mathPromise;
 
 const CANVAS_CALC_THEMES = {
@@ -144,6 +144,14 @@ return {
     },
     unmount() {
       if (typeof resizeHandler === "function") window.removeEventListener("resize", resizeHandler);
+    },
+    ensureMath() {
+      if (typeof ensureMath === "function") ensureMath();
+    },
+    retypesetAll() {
+      [renderPhysTopic, renderChemTopic, renderBioTopic, renderCalcTopic, renderStatsTopic, renderSatTopic, renderRefSheet].forEach((fn) => {
+        try { fn(); } catch (e) {}
+      });
     }
   };`);
 
@@ -155,4 +163,14 @@ return {
   api.unmount = () => { originalUnmount(); mount.replaceChildren(); };
   window.__gcalcInstance = api;
   api.setTheme(settings().theme, settings().mode);
+  if (api.ensureMath) api.ensureMath();
+  const waitForJax = () => new Promise((resolve) => {
+    if (window.MathJax && window.MathJax.typesetPromise) return resolve();
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (window.MathJax && window.MathJax.typesetPromise) { clearInterval(iv); resolve(); }
+      else if (++tries > 100) { clearInterval(iv); resolve(); }
+    }, 150);
+  });
+  waitForJax().then(() => { if (!isStale() && api.retypesetAll) api.retypesetAll(); });
 }

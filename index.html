@@ -24,7 +24,7 @@
     // leaving an empty page. ANY error is shown (no suppression) so the user
     // can report exactly what happened.
     window.__booted = false;
-    window.__rev = "b47";
+    window.__rev = "b48";
     function showBootError(msg, stack) {
       var o = document.getElementById('onboarding');
       var err = document.getElementById('bootError');
@@ -106,7 +106,7 @@
     <div class="onboarding-card">
       <h1>◧ Canvas Pro</h1>
       <p class="subtitle">A better, grade-aware view of your Canvas classes.</p>
-      <p class="subtitle">Your access token stays on this device — it is never uploaded.</p>
+      <p class="subtitle">Your access token is sent only to the app's Canvas proxy to load your classes and grades, and is never stored on any server.</p>
 
       <label class="field">
         <span>Canvas base URL</span>
@@ -128,6 +128,6 @@
 
   <div id="toastWrap"></div>
 
-  <script type="module" src="js/app.js?v=208"></script>
+  <script type="module" src="js/app.js?v=209"></script>
 </body>
 </html>
