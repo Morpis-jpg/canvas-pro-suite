@@ -184,6 +184,11 @@ function bindEvents() {
 }
 
 function syncCalculatorTheme() {
+  const embedded = window.__gcalcInstance;
+  if (embedded?.setTheme) {
+    embedded.setTheme(settings().theme, settings().mode);
+    return;
+  }
   const frame = document.querySelector("#calculatorFrame");
   if (!frame?.contentWindow) return;
   frame.contentWindow.postMessage({ type: "canvas-pro-theme", palette: settings().theme, mode: settings().mode }, "*");
