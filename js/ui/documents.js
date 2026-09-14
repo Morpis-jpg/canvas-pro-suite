@@ -83,11 +83,13 @@ async function openFile(f) {
   //    files don't carry a session — pull the full file object to get one.
   let fileMeta = f;
   let canvasDocUrl = f.canvadoc_session_url;
+  let canvasPreviewUrl = f.preview_url;
   if (!canvasDocUrl && cid && fid) {
     try {
       const meta = await canvas.getFile(cid, fid);
       if (meta) fileMeta = { ...f, ...meta };
       if (fileMeta.canvadoc_session_url) canvasDocUrl = fileMeta.canvadoc_session_url;
+      if (fileMeta.preview_url) canvasPreviewUrl = fileMeta.preview_url;
     } catch (e) {}
   }
   if (canvasDocUrl) {
@@ -99,6 +101,12 @@ async function openFile(f) {
         return;
       }
     } catch (e) {}
+  }
+
+  if (canvasPreviewUrl) {
+    show(`<iframe src="${esc(canvasPreviewUrl)}" allowfullscreen style="width:100%;height:68vh;border:none;border-radius:12px;background:#fff" title="Canvas preview"></iframe>
+      <p class="small muted" style="margin-top:8px">Preview powered by Canvas. If it looks blank, use the ↗ button to open it in Canvas.</p>`);
+    return;
   }
 
   // 2) Fallback: fetch bytes directly and render images/audio/video/PDF/text.
@@ -130,7 +138,8 @@ async function openFile(f) {
     show(previewBody(kind, obj, text));
   } else {
     show(`<p class="muted">"${esc(f.display_name || f.filename)}" is a ${esc(ct || f.mime_class || "file")} — this type isn't viewable in the in-app viewer.</p>`,
-      `<a class="btn" href="${esc(onCanvas)}" target="_blank" rel="noopener">Open in Canvas ↗</a>`);
+      `<a class="btn" href="${esc(obj)}" download="${esc(f.filename || f.display_name || "download")}">Download file</a>
+       <a class="btn" href="${esc(onCanvas)}" target="_blank" rel="noopener">Open in Canvas ↗</a>`);
   }
 }
 
