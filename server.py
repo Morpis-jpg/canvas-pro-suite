@@ -265,7 +265,11 @@ def pick_port():
     return None
 
 def main():
-    port = pick_port()
+    env_port = os.environ.get("PORT")
+    if env_port:
+        port = int(env_port)
+    else:
+        port = pick_port()
     if port is None:
         print("No free port found in 8000-8019. Close something and retry.")
         sys.exit(1)
@@ -279,7 +283,8 @@ def main():
     print(f"\nCanvas Pro is running at  {url}", flush=True)
     print("Keep this window open. Press Ctrl+C to stop.\n", flush=True)
 
-    threading.Timer(0.6, lambda: webbrowser.open(url)).start()
+    if not env_port:
+        threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

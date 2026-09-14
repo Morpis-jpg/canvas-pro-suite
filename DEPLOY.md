@@ -1,44 +1,44 @@
 # Public mirrors
 
-The same build is deployed to several free hosts so the app keeps working even when
-a school network blocks one of them — including Vercel, which many districts block.
+Every mirror is fully self-contained: it serves the app and its **own** Canvas /
+file / AI proxy. Nothing routes through another host (the school blocks Vercel,
+so no mirror may depend on it).
 
-| Host | URL | Canvas sync | Auto-deploy |
-| ---- | --- | ----------- | ----------- |
-| Cloudflare Pages | https://canvas-pro-suite.pages.dev | yes — Pages Functions proxy (`functions/api/canvas.js`, `functions/api/dl.js`) | `.github/workflows/cloudflare-pages.yml` on `beta` |
-| Vercel | https://canvas-pro-suite-beta.vercel.app | yes — Python functions (`api/canvas.py`, `api/dl.py`) | `vercel deploy --prod --yes` |
-| GitHub Pages | https://morpis-jpg.github.io/canvas-pro-suite/ | no (static only) | `.github/workflows/pages.yml` on `beta` |
-| Firebase Hosting | https://canvas-pro-suite.web.app | no (static only) | `.github/workflows/firebase-hosting.yml` on `beta` |
+| Host | URL | Proxy implementation | Auto-deploy |
+| ---- | --- | -------------------- | ----------- |
+| Cloudflare Pages | https://canvas-pro-suite.pages.dev | Pages Functions — `functions/api/{canvas,dl,ai}.js` | `.github/workflows/cloudflare-pages.yml` on `beta` |
+| Netlify | (site URL after setup) | Netlify Functions — `netlify/functions/{canvas,dl,ai}.mjs` | `.github/workflows/netlify.yml` on `beta` |
+| Render | (service URL after setup) | the full `server.py` (static + `/api/canvas`, `/api/dl`, `/api/ai`) | Render Git integration (`render.yaml`) |
+| Vercel | https://canvas-pro-suite-beta.vercel.app | Python functions — `api/{canvas,dl,ai}.py` | Git integration (repo default branch) |
 
-Static-only mirrors still run the full calculator, reference sheets, and saved
-data; they show a notice pointing at the Cloudflare mirror when Canvas features
-are unavailable. Nothing routes through Vercel.
+## Static-only extras (no proxy)
 
-## Setting up Firebase Hosting (one time)
+GitHub Pages (`https://morpis-jpg.github.io/canvas-pro-suite/`) and Firebase
+(`https://canvas-pro-suite.web.app`) are pure static hosting: they cannot run a
+server proxy (Firebase Functions require the paid Blaze plan). They still run the
+full calculator, reference sheets, and saved data, and show a notice pointing at
+the Cloudflare mirror. They can be deleted any time without breaking anything.
 
-1. `npm i -g firebase-tools`
-2. `firebase login`
-3. Create a project named `canvas-pro-suite` at https://console.firebase.google.com
-   (Spark free plan, Hosting enabled).
-4. Add the workflow secret `FIREBASE_SERVICE_ACCOUNT` in the repo settings with the
-   service-account JSON from Project settings → Service accounts → Generate new key.
-   Every push to `beta` then deploys the mirror.
+## Setting up Netlify (one time)
 
-## Setting up Cloudflare Pages (one time)
+1. Create a free account at https://app.netlify.com.
+2. Either click **Add new site → Import an existing project → GitHub →
+   `canvas-pro-suite`** (branch `beta`), or create a bare site and copy its API ID.
+3. Add two repo secrets:
+   - `NETLIFY_AUTH_TOKEN` — Netlify → User settings → Applications → Personal access tokens
+   - `NETLIFY_SITE_ID` — Site configuration → General → Site information → API ID
+4. Every push to `beta` then deploys the mirror; the first deploy creates it.
 
-1. Create an account at https://dash.cloudflare.com (free).
-2. Create an API token with the `Cloudflare Pages — Edit` permission; copy the
-   Account ID from the dashboard sidebar.
-3. Add repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-   Every push to `beta` then deploys the mirror.
+## Setting up Render (one time)
 
-## First-time manual deploy (optional)
+1. Create a free account at https://render.com and connect GitHub.
+2. **New → Blueprint**, pick the `canvas-pro-suite` repo; `render.yaml` is applied
+   automatically (free plan, `python server.py`).
+3. Render sets `PORT`, so the server binds it and skips opening a browser.
+   Free services sleep after ~15 minutes idle (first visit takes ~30–60 s).
 
-- Firebase: `firebase deploy --only hosting`
-- Cloudflare: `npx wrangler pages deploy . --project-name canvas-pro-suite`
+## Local (never blockable)
 
-## School-Wi-Fi notes
-
-If every full-feature mirror is blocked, ask district IT to allowlist
-`canvas-pro-suite.pages.dev` (Cloudflare — full features) or use the local server,
-which cannot be blocked: `npm start` then open http://localhost:8000.
+```bash
+npm start        # serves http://localhost:8000 with the same proxies
+```
