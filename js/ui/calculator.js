@@ -94,9 +94,12 @@ export async function render(_state, root, isStale = () => false) {
   if (isStale()) return;
   const sourceDoc = new DOMParser().parseFromString(source, "text/html");
   const style = document.createElement("style");
-  style.textContent = [...sourceDoc.querySelectorAll("style")].map((s) => transformCalculatorCss(s.textContent)).join("\n");
+  style.textContent = ":host { display:block; width:100%; height:100%; min-height:100%; } .gcalc-body { width:100%; height:max(820px, calc(100vh - 180px)); overflow:hidden; }\n" + [...sourceDoc.querySelectorAll("style")].map((s) => transformCalculatorCss(s.textContent)).join("\n");
   shadow.appendChild(style);
-  shadow.appendChild(prepareMarkup(sourceDoc));
+  const body = document.createElement("div");
+  body.className = "gcalc-body";
+  body.appendChild(prepareMarkup(sourceDoc));
+  shadow.appendChild(body);
 
   const mainScript = [...sourceDoc.scripts].find((s) => !s.src && s.textContent.includes("const exprInput"))?.textContent;
   if (!mainScript) throw new Error("Calculator script was not found.");

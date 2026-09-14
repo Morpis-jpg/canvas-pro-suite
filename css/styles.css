@@ -652,9 +652,11 @@ tbody tr:last-child td { border-bottom: none; }
 /* ---------- Integrated calculator ---------- */
 .calculator-tool { min-height: calc(100vh - 110px); display: flex; flex-direction: column; gap: 14px; }
 .calculator-tool-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.calculator-mount { flex: 1; min-height: 820px; height: calc(100vh - 180px); overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); box-shadow: var(--shadow); }
 .calculator-frame { width: 100%; flex: 1; min-height: 820px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); box-shadow: var(--shadow); }
 @media (max-width: 700px) {
   .calculator-tool-head { flex-direction: column; }
+  .calculator-mount { min-height: 760px; height: calc(100vh - 210px); }
   .calculator-frame { min-height: 760px; }
 }
 
