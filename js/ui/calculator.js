@@ -14,6 +14,17 @@ const CANVAS_CALC_THEMES = {
   "cream-light": { bg: "#f6ecd9", grid: "rgba(130,105,55,.18)", axis: "#a58f68", num: "#93805f", label: "#3a3124" },
 };
 
+const CANVAS_CALC_SURFACES = {
+  "midnight-dark": { bg: "#0f1220", soft: "#171b2e", card: "#1c2137", card2: "#222842", border: "#2b3355", text: "#e7e9f4", muted: "#99a0c3", accent: "#6c8cff" },
+  "midnight-light": { bg: "#eef1fa", soft: "#e2e7f3", card: "#fff", card2: "#eef1fb", border: "#d5dced", text: "#222a45", muted: "#5e6a91", accent: "#4f6bff" },
+  "earthy-dark": { bg: "#191512", soft: "#26201a", card: "#2c251c", card2: "#372e22", border: "#4d4232", text: "#f2e8d6", muted: "#bcab8d", accent: "#d3a855" },
+  "earthy-light": { bg: "#f2e9da", soft: "#e8dcc4", card: "#fbf6ec", card2: "#f3e9d6", border: "#dcccaa", text: "#44382a", muted: "#93805f", accent: "#a9822f" },
+  "earthy-green-dark": { bg: "#101712", soft: "#19231b", card: "#1c2a21", card2: "#243527", border: "#2f4733", text: "#eaf2e6", muted: "#9db5a0", accent: "#6cc287" },
+  "earthy-green-light": { bg: "#eff4e8", soft: "#e2ead4", card: "#fbfdf5", card2: "#f1f6e5", border: "#d3dfc0", text: "#2f402e", muted: "#71866b", accent: "#4f9a63" },
+  "cream-dark": { bg: "#16120d", soft: "#201b13", card: "#262019", card2: "#30291f", border: "#463c2c", text: "#f0e6d3", muted: "#b3a383", accent: "#cfab5b" },
+  "cream-light": { bg: "#f6ecd9", soft: "#efdfc4", card: "#fffcf4", card2: "#f7eede", border: "#ddd0b4", text: "#3a3124", muted: "#93805f", accent: "#a9822f" },
+};
+
 function loadMathjs() {
   if (window.math) return Promise.resolve();
   if (mathPromise) return mathPromise;
@@ -94,10 +105,10 @@ export async function render(_state, root, isStale = () => false) {
   if (isStale()) return;
   const sourceDoc = new DOMParser().parseFromString(source, "text/html");
   const style = document.createElement("style");
-  style.textContent = ":host { display:block; width:100%; height:100%; min-height:100%; } .gcalc-body { width:100%; height:max(820px, calc(100vh - 180px)); overflow:hidden; }\n" + [...sourceDoc.querySelectorAll("style")].map((s) => transformCalculatorCss(s.textContent)).join("\n");
+  style.textContent = ":host { display:block; width:100%; height:100%; min-height:100%; } .gcalc-shell { width:100%; height:max(820px, calc(100vh - 180px)); overflow:hidden; }\n" + [...sourceDoc.querySelectorAll("style")].map((s) => transformCalculatorCss(s.textContent)).join("\n");
   shadow.appendChild(style);
   const body = document.createElement("div");
-  body.className = "gcalc-body";
+  body.className = "gcalc-shell";
   body.appendChild(prepareMarkup(sourceDoc));
   shadow.appendChild(body);
 
@@ -107,7 +118,7 @@ export async function render(_state, root, isStale = () => false) {
 
   const scoped = scopedDocument(shadow, mount);
   const embeddedScript = mainScript.replace("window.addEventListener('resize',", "root.addEventListener('gcalc-resize',");
-  const runner = new Function("document", "window", "root", "host", "themeMap", `${embeddedScript}
+  const runner = new Function("document", "window", "root", "host", "themeMap", "surfaceMap", `${embeddedScript}
   for (const inlineType of ["click", "change", "input", "keydown", "keyup"]) {
     root.addEventListener(inlineType, function (event) {
       let element = event.target;
@@ -125,6 +136,7 @@ return {
       host.setAttribute("data-canvas-palette", p);
       host.setAttribute("data-canvas-mode", m);
       host.setAttribute("data-theme", m);
+      for (const [name, value] of Object.entries(surfaceMap[p + "-" + m] || {})) host.style.setProperty("--cp-" + name, value);
       if (typeof DARK !== "undefined") DARK = m === "dark";
       if (typeof THEMES !== "undefined" && typeof THEME !== "undefined") THEME = themeMap[p + "-" + m] || THEMES[m];
       if (typeof syncTheme === "function") syncTheme();
@@ -135,7 +147,7 @@ return {
     }
   };`);
 
-  const api = runner(scoped, window, shadow, mount, CANVAS_CALC_THEMES);
+  const api = runner(scoped, window, shadow, mount, CANVAS_CALC_THEMES, CANVAS_CALC_SURFACES);
   const resizeHandler = () => shadow.dispatchEvent(new Event("gcalc-resize"));
   window.addEventListener("resize", resizeHandler);
 
