@@ -96,7 +96,7 @@ export function render(state, root, isStale = () => false) {
       };
       if (s.aiKey) headers["X-AI-Key"] = s.aiKey;
       if (prov === "opencode") headers["X-AI-Session"] = ocSession || "";
-      const resp = await fetch("/api/ai", {
+      const resp = await fetch("api/ai", {
         method: "POST",
         headers,
         body: JSON.stringify(body),

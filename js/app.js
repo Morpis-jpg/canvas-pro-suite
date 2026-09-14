@@ -254,7 +254,7 @@ function bindOnboarding() {
 const probeL = {
   async serverAlive() {
     try {
-      const r = await fetch("/version.json?probe=" + Date.now(), { cache: "no-store" });
+      const r = await fetch("version.json?probe=" + Date.now(), { cache: "no-store" });
       return r.ok;
     } catch {
       return false;
@@ -267,11 +267,11 @@ async function serverStatusOnBoot() {
   if (!note) return;
   let staticOk = false, proxyOk = false;
   try {
-    staticOk = (await fetch("/version.json?probe=" + Date.now(), { cache: "no-store" })).ok;
+    staticOk = (await fetch("version.json?probe=" + Date.now(), { cache: "no-store" })).ok;
   } catch {}
   if (staticOk) {
     try {
-      const r = await fetch("/api/canvas?p=%2Fhealth", { cache: "no-store", method: "GET" });
+      const r = await fetch("api/canvas?p=%2Fhealth", { cache: "no-store", method: "GET" });
       proxyOk = r.status === 400 || r.status === 401 || r.status === 403 || r.status === 422;
     } catch {}
   }

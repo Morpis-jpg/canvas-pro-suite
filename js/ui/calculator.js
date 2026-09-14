@@ -1,6 +1,6 @@
 import { settings } from "../storage.js";
 
-const MATHJS_URL = "/vendor/math.min.js";
+const MATHJS_URL = "vendor/math.min.js";
 let mathPromise;
 
 const CANVAS_CALC_THEMES = {
@@ -117,7 +117,9 @@ export async function render(_state, root, isStale = () => false) {
   window.MathJax = window.MathJax || { tex: { inlineMath: [["$", "$"]], displayMath: [["$$", "$$"]] }, startup: { typeset: false } };
 
   const scoped = scopedDocument(shadow, mount);
-  const embeddedScript = mainScript.replace("window.addEventListener('resize',", "root.addEventListener('gcalc-resize',");
+  const embeddedScript = mainScript
+    .replace("window.addEventListener('resize',", "root.addEventListener('gcalc-resize',")
+    .replace("'../../vendor/tex-svg.js'", JSON.stringify(new URL('vendor/tex-svg.js', location.href).href));
   const runner = new Function("document", "window", "root", "host", "themeMap", "surfaceMap", `${embeddedScript}
   for (const inlineType of ["click", "change", "input", "keydown", "keyup"]) {
     root.addEventListener(inlineType, function (event) {

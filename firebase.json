@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".github",
+      ".git",
+      ".vercel",
+      ".env*",
+      "server.py",
+      "api/canvas.py",
+      "api/dl.py",
+      "**/__pycache__/**",
+      "*.pyc"
+    ]
+  }
+}

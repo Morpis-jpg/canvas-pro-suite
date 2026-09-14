@@ -212,7 +212,7 @@ export function render(state, root) {
     st.style.color = "var(--muted)";
     const prov = s.aiProvider || "openai";
     try {
-      const resp = await fetch("/api/ai", {
+      const resp = await fetch("api/ai", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -113,7 +113,7 @@ async function openFile(f) {
   let blob;
   try {
     const downloadTarget = fileMeta.url || f.url || canvas.fileDownloadUrl(base, cid, fid);
-    const res = await fetch("/api/dl?u=" + encodeURIComponent(downloadTarget), {
+    const res = await fetch("api/dl?u=" + encodeURIComponent(downloadTarget), {
       headers: { "X-Canvas-Token": s.token, "X-Canvas-Base": base },
     });
     if (!res.ok) {

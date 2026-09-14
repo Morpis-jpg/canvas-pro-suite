@@ -4,7 +4,7 @@ const PER_PAGE = 100;
 // browser never hits Canvas CORS and the token never leaves the machine.
 // Set USE_PROXY=false (and give a public CORS-enabled base) when deploying.
 const USE_PROXY = true;
-const PROXY_PATH = "/api/canvas";
+const PROXY_PATH = "api/canvas";
 
 let base = "";
 let token = "";
