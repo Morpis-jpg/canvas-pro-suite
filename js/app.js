@@ -24,6 +24,7 @@ import { render as renderDocuments } from "./ui/documents.js";
 import { render as renderAnnouncements } from "./ui/announcements.js";
 import { render as renderLate } from "./ui/latelist.js";
 import { render as renderAi } from "./ui/ai.js";
+import { render as renderCalculator } from "./ui/calculator.js";
 
 const VIEWS = {
   dashboard: renderDashboard,
@@ -38,6 +39,7 @@ const VIEWS = {
   announcements: renderAnnouncements,
   latelist: renderLate,
   ai: renderAi,
+  calculator: renderCalculator,
 };
 
 const state = { data: cacheData(), profile: null };
@@ -172,12 +174,19 @@ function bindEvents() {
       s.mode = s.mode === "light" ? "dark" : "light";
       saveSettings();
       applyTheme();
+      syncCalculatorTheme();
       return;
     }
     if (e.target.closest && e.target.closest("#userBtn")) {
       switchTab(document.querySelector('.tab-btn[data-tab="settings"]'));
     }
   });
+}
+
+function syncCalculatorTheme() {
+  const frame = document.querySelector("#calculatorFrame");
+  if (!frame?.contentWindow) return;
+  frame.contentWindow.postMessage({ type: "canvas-pro-theme", mode: settings().mode }, "*");
 }
 
 function switchTab(btn) {

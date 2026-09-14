@@ -649,6 +649,15 @@ tr.done td:first-child { text-decoration: none; }
 .doc-open .btn { white-space: nowrap; }
 tbody tr:last-child td { border-bottom: none; }
 
+/* ---------- Integrated calculator ---------- */
+.calculator-tool { min-height: calc(100vh - 110px); display: flex; flex-direction: column; gap: 14px; }
+.calculator-tool-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.calculator-frame { width: 100%; flex: 1; min-height: 820px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); box-shadow: var(--shadow); }
+@media (max-width: 700px) {
+  .calculator-tool-head { flex-direction: column; }
+  .calculator-frame { min-height: 760px; }
+}
+
 /* ---------- Announcements ---------- */
 .ann-item { padding: 4px 18px; }
 .ann-item.read { filter: none; }
