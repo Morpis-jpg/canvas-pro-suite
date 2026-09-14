@@ -2,6 +2,7 @@ name: Deploy Cloudflare Pages
 on:
   push:
     branches: [beta]
+  workflow_dispatch:
 jobs:
   deploy:
     runs-on: ubuntu-latest
