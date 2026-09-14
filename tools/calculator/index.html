@@ -542,6 +542,28 @@
         .gcalc-shell .buttons .equals, .gcalc-shell .cas-btn.primary { background:var(--cp-accent) !important; border-color:var(--cp-accent) !important; color:#fff !important; }
         .gcalc-shell .ref-card { background:var(--cp-card2) !important; border-color:var(--cp-border) !important; }
         .gcalc-shell .ref-group, .gcalc-shell .ref-topic { color:var(--cp-accent) !important; }
+
+        /* Premium depth inside the native calculator mount. */
+        .gcalc-shell .toolbar, .gcalc-shell .calculator, .gcalc-shell .card, .gcalc-shell .pcard,
+        .gcalc-shell .phys-nav, .gcalc-shell .pform, .gcalc-shell .cas-item, .gcalc-shell .ref-card {
+            box-shadow: 0 12px 28px color-mix(in srgb, var(--cp-bg) 22%, transparent), 0 2px 7px color-mix(in srgb, var(--cp-border) 35%, transparent);
+            transition: box-shadow .24s ease, border-color .2s ease, background-color .24s ease, transform .2s ease;
+        }
+        .gcalc-shell .card:hover, .gcalc-shell .pcard:hover, .gcalc-shell .ref-card:hover { transform: translateY(-2px); }
+        .gcalc-shell .buttons button, .gcalc-shell .g-btn, .gcalc-shell .gear, .gcalc-shell .cas-btn, .gcalc-shell .chip, .gcalc-shell .pc {
+            transition: transform .12s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+        }
+        .gcalc-shell .buttons button:hover, .gcalc-shell .g-btn:hover, .gcalc-shell .gear:hover, .gcalc-shell .cas-btn:hover, .gcalc-shell .chip:hover, .gcalc-shell .pc:hover {
+            transform: translateY(-1px); box-shadow: 0 6px 14px color-mix(in srgb, var(--cp-bg) 28%, transparent);
+        }
+        .gcalc-shell .buttons button:focus-visible, .gcalc-shell .g-btn:focus-visible, .gcalc-shell .gear:focus-visible,
+        .gcalc-shell .cas-btn:focus-visible, .gcalc-shell .chip:focus-visible, .gcalc-shell input:focus-visible,
+        .gcalc-shell select:focus-visible {
+            outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-accent) 28%, transparent);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .gcalc-shell *, .gcalc-shell *::before, .gcalc-shell *::after { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+        }
         html[data-theme="dark"] .pnote, html[data-theme="dark"] .pblurb { color: #9b9286; }
         html[data-theme="dark"] .guide { background: #1e1b18; border-color: #332c25; }
         html[data-theme="dark"] .guide-card { background: #191613; border-color: #322b24; }
