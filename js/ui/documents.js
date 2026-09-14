@@ -81,11 +81,13 @@ async function openFile(f) {
   // 1) Preferred: CanvaDoc preview session (Canvas's own viewer, handles
   //    PDF + office docs + images, no download scope needed). Module-sourced
   //    files don't carry a session — pull the full file object to get one.
+  let fileMeta = f;
   let canvasDocUrl = f.canvadoc_session_url;
   if (!canvasDocUrl && cid && fid) {
     try {
       const meta = await canvas.getFile(cid, fid);
-      if (meta && meta.canvadoc_session_url) canvasDocUrl = meta.canvadoc_session_url;
+      if (meta) fileMeta = { ...f, ...meta };
+      if (fileMeta.canvadoc_session_url) canvasDocUrl = fileMeta.canvadoc_session_url;
     } catch (e) {}
   }
   if (canvasDocUrl) {
@@ -102,7 +104,8 @@ async function openFile(f) {
   // 2) Fallback: fetch bytes directly and render images/audio/video/PDF/text.
   let blob;
   try {
-    const res = await fetch("/api/dl?u=" + encodeURIComponent(canvas.fileDownloadUrl(base, cid, fid)), {
+    const downloadTarget = fileMeta.url || f.url || canvas.fileDownloadUrl(base, cid, fid);
+    const res = await fetch("/api/dl?u=" + encodeURIComponent(downloadTarget), {
       headers: { "X-Canvas-Token": s.token, "X-Canvas-Base": base },
     });
     if (!res.ok) {

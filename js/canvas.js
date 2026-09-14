@@ -126,7 +126,12 @@ export function getFile(courseId, fileId) {
 // uses. Works for PDF/office/images and rides on the file-read access the
 // listing already has (no extra download scope needed).
 export async function getCanvadocSession(relPath) {
-  const r = await api(relPath);
+  let path = relPath;
+  try {
+    const parsed = new URL(relPath);
+    path = parsed.pathname + (parsed.search || "");
+  } catch {}
+  const r = await api(path);
   const su = (r && (r.session_url || r.url)) || r;
   return typeof su === "string" && /^https?:\/\//.test(su) ? su : null;
 }
