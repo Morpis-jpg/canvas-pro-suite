@@ -2,6 +2,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [beta]
+  workflow_dispatch:
 permissions:
   contents: read
   pages: write
