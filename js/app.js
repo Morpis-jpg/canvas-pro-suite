@@ -186,8 +186,10 @@ function bindEvents() {
 function syncCalculatorTheme() {
   const frame = document.querySelector("#calculatorFrame");
   if (!frame?.contentWindow) return;
-  frame.contentWindow.postMessage({ type: "canvas-pro-theme", mode: settings().mode }, "*");
+  frame.contentWindow.postMessage({ type: "canvas-pro-theme", palette: settings().theme, mode: settings().mode }, "*");
 }
+
+window.syncCalculatorTheme = syncCalculatorTheme;
 
 function switchTab(btn) {
   if (!btn) return;

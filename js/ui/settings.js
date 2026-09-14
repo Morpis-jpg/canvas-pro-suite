@@ -127,7 +127,7 @@ export function render(state, root) {
   `;
 
   const save = () => saveSettings();
-  const apply = () => { applyTheme(); save(); };
+  const apply = () => { applyTheme(); save(); window.syncCalculatorTheme?.(); };
 
   root.querySelectorAll(".theme-swatch").forEach((b) => {
     b.addEventListener("click", () => {

@@ -3,6 +3,7 @@ import { settings } from "../storage.js";
 function syncFrameTheme(frame) {
   frame.contentWindow?.postMessage({
     type: "canvas-pro-theme",
+    palette: settings().theme,
     mode: settings().mode,
   }, "*");
 }
