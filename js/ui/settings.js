@@ -24,7 +24,7 @@ export function render(state, root) {
 
     <div class="card">
       <h2>Appearance</h2>
-      <p class="small muted">Pick a palette, then a mode — every theme has a dark and a light version. Applies instantly, saved on this device.</p>
+      <p class="small muted">Pick a palette, then a mode â€” every theme has a dark and a light version. Applies instantly, saved on this device.</p>
       <div class="theme-row mt">
         ${[
           { id: "midnight", name: "Midnight", desc: "Cool blue night", sw: "sw-midnight" },
@@ -41,18 +41,18 @@ export function render(state, root) {
       <div class="mode-seg mt flex">
         <button id="modeDark" class="btn btn-small ${s.mode !== "light" ? "active" : ""}">Dark</button>
         <button id="modeLight" class="btn btn-small ${s.mode === "light" ? "active" : ""}">Light</button>
-        <span class="small muted">You can also toggle mode from the 🌙 / ☀️ button in the top bar.</span>
+        <span class="small muted">You can also toggle mode from the ðŸŒ™ / â˜€ï¸ button in the top bar.</span>
       </div>
     </div>
 
     <div class="card mt">
       <h2>Canvas connection</h2>
       ${p ? `<div class="flex between">
-        <div><b>${esc(p.name)}</b><div class="small muted">${esc(p.email)} · user #${esc(p.id)}</div></div>
+        <div><b>${esc(p.name)}</b><div class="small muted">${esc(p.email)} Â· user #${esc(p.id)}</div></div>
         <button id="reconnect" class="btn btn-small">Change token</button>
       </div>` : `<p class="muted">Not connected.</p>`}
       <div class="field"><span>Canvas base URL</span><input id="setUrl" value="${esc(s.canvasBaseUrl)}" /></div>
-      <div class="field"><span>Access token <span class="muted small">(always local, never uploaded)</span></span><input id="setToken" type="password" placeholder="••••••••" autocomplete="off" /></div>
+      <div class="field"><span>Access token <span class="muted small">(always local, never uploaded)</span></span><input id="setToken" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="off" /></div>
     </div>
 
     <div class="card mt">
@@ -61,13 +61,14 @@ export function render(state, root) {
       <div class="field"><span>Provider</span>
         <select id="aiProvider">
           <option value="opencode" ${s.aiProvider === "opencode" ? "selected" : ""}>opencode (local, no key)</option>
+          <option value="local" ${s.aiProvider === "local" ? "selected" : ""}>Local Ollama model (on this machine)</option>
           <option value="gemini" ${s.aiProvider === "gemini" ? "selected" : ""}>Google Gemini (API key)</option>
-          <option value="openai" ${s.aiProvider === "openai" ? "selected" : ""}>OpenAI-compatible (OpenAI, Azure, Together, LocalAI, Groq…)</option>
+          <option value="openai" ${s.aiProvider === "openai" ? "selected" : ""}>OpenAI-compatible (OpenAI, Azure, Together, LocalAI, Groqâ€¦)</option>
           <option value="openrouter" ${s.aiProvider === "openrouter" ? "selected" : ""}>OpenRouter (any model)</option>
           <option value="copilot" ${s.aiProvider === "copilot" ? "selected" : ""}>GitHub Copilot</option>
         </select>
       </div>
-      <div class="field"><span>Endpoint URL <span class="muted small">(/v1/chat/completions or Copilot's chat endpoint)</span></span><input id="aiUrl" value="${esc(s.aiUrl)}" placeholder="https://api.openai.com/v1/chat/completions" /></div>
+      <div class="field"><span>Endpoint URL <span class="muted small">(/v1/chat/completions, Copilot's chat endpoint, or Ollama base URL for â€œLocal Ollamaâ€)</span></span><input id="aiUrl" value="${esc(s.aiUrl)}" placeholder="https://api.openai.com/v1/chat/completions" /></div>
       <div class="grid grid-2">
         <label class="field"><span>Model</span><input id="aiModel" value="${esc(s.aiModel)}" placeholder="gpt-4o" /></label>
         <label class="field"><span>Key / token <span class="muted small">(never leaves your machine)</span></span><input id="aiKey" type="password" value="${esc(s.aiKey)}" autocomplete="off" /></label>
@@ -84,7 +85,7 @@ export function render(state, root) {
       <h2>Account access (Canvas email only)</h2>
       <p class="small muted">This app only accepts accounts tied to real Canvas emails. The email is verified from your Canvas profile when you connect.</p>
       <div class="field">
-        <span>Allowed email domains <span class="muted small">(comma-separated; e.g. school.edu. Leave empty → blocks common personal mail like gmail.com)</span></span>
+        <span>Allowed email domains <span class="muted small">(comma-separated; e.g. school.edu. Leave empty â†’ blocks common personal mail like gmail.com)</span></span>
         <input id="setDomains" value="${esc(s.allowedDomains?.join(", ") || "")}" placeholder="school.edu, district.k12.us" />
       </div>
       <div class="check-item">
@@ -127,7 +128,7 @@ export function render(state, root) {
   `;
 
   const save = () => saveSettings();
-  const apply = () => { applyTheme(); save(); window.syncCalculatorTheme?.(); };
+  const apply = () => { applyTheme(); save(); };
 
   root.querySelectorAll(".theme-swatch").forEach((b) => {
     b.addEventListener("click", () => {
@@ -163,19 +164,21 @@ export function render(state, root) {
 
   const AI_HINTS = {
     opencode: "opencode: no API key needed. Talks to your local `opencode serve` (default http://localhost:4096) and uses the model/tools opencode is configured with. Leave Key blank; model blank = opencode's default.",
+    local: "Local Ollama: runs entirely on this machine. Needs the Ollama app running (`ollama serve`) with a model pulled â€” this app defaults to gemma4:e2b and falls back to gemma2 if missing. No key needed. The assistant also gets server-side tools to read your courses/tasks and mark work done.",
     gemini: "Google Gemini: uses Google's OpenAI-compatible endpoint. Get a free API key at Google AI Studio (aistudio.google.com) and paste it below.",
-    openai: "OpenAI-compatible: works with OpenAI, Azure OpenAI, Groq, Together, LocalAI… Endpoint points at /v1/chat/completions.",
+    openai: "OpenAI-compatible: works with OpenAI, Azure OpenAI, Groq, Together, LocalAIâ€¦ Endpoint points at /v1/chat/completions.",
     openrouter: "OpenRouter: one key, dozens of models (openrouter.ai). 'openrouter/auto' picks the best one for your request automatically.",
     copilot: "GitHub Copilot: uses api.githubcopilot.com. Needs a token from a GitHub account with an active Copilot subscription. Unofficial endpoint; may change.",
   };
   const AI_URLS = {
     opencode: "http://localhost:4096",
+    local: "http://localhost:11434",
     gemini: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     openai: "https://api.openai.com/v1/chat/completions",
     openrouter: "https://openrouter.ai/api/v1/chat/completions",
     copilot: "https://api.githubcopilot.com/chat/completions",
   };
-  const AI_MODELS = { opencode: "", gemini: "gemini-3.8-flash", openai: "gpt-4o", openrouter: "openrouter/auto", copilot: "gpt-4o" };
+  const AI_MODELS = { opencode: "", local: "gemma4:e2b", gemini: "gemini-3.8-flash", openai: "gpt-4o", openrouter: "openrouter/auto", copilot: "gpt-4o" };
   const KNOWN_DEFAULTS = Object.values(AI_MODELS);
   const setAiHint = () => {
     const sel = root.querySelector("#aiProvider");
@@ -208,33 +211,53 @@ export function render(state, root) {
     saveSettings();
     const st = root.querySelector("#aiTestStatus");
     if (!s.aiUrl) { st.textContent = "Endpoint URL is empty."; return; }
-    st.textContent = "Testing…";
+    st.textContent = "Testingâ€¦";
     st.style.color = "var(--muted)";
     const prov = s.aiProvider || "openai";
     try {
-      const resp = await fetch("api/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-AI-Provider": prov,
-          "X-AI-Url": s.aiUrl || AI_URLS[prov] || "https://api.openai.com/v1/chat/completions",
-          "X-AI-Key": s.aiKey || "",
-        },
-        body: JSON.stringify({ model: s.aiModel || undefined, messages: [{ role: "user", content: "Reply with the single word: OK" }] }),
-      });
-      const raw = await resp.text();
-      let data = {};
-      try { data = JSON.parse(raw); } catch (e) {}
-      if (!resp.ok) {
-        let why = data.error?.message || data.message || "";
-        if (prov === "opencode" && !why) why = "Is `opencode serve` running? Start it in a terminal.";
-        throw new Error(why || ("HTTP " + resp.status));
+      let reply;
+      if (prov === "local") {
+        const resp = await fetch("api/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-AI-Token": s.token || "",
+            "X-AI-Base": s.canvasBaseUrl || "",
+            "X-AI-Ollama": s.aiUrl || AI_URLS.local,
+            "X-AI-Model": s.aiModel || AI_MODELS.local,
+          },
+          body: JSON.stringify({ reset: true, message: "Reply with the single word: OK" }),
+        });
+        const raw = await resp.text();
+        let data = {};
+        try { data = JSON.parse(raw); } catch (e) {}
+        if (!resp.ok) throw new Error(data.message || ("HTTP " + resp.status));
+        reply = data.text;
+      } else {
+        const resp = await fetch("api/ai", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-AI-Provider": prov,
+            "X-AI-Url": s.aiUrl || AI_URLS[prov] || "https://api.openai.com/v1/chat/completions",
+            "X-AI-Key": s.aiKey || "",
+          },
+          body: JSON.stringify({ model: s.aiModel || undefined, messages: [{ role: "user", content: "Reply with the single word: OK" }] }),
+        });
+        const raw = await resp.text();
+        let data = {};
+        try { data = JSON.parse(raw); } catch (e) {}
+        if (!resp.ok) {
+          let why = data.error?.message || data.message || "";
+          if (prov === "opencode" && !why) why = "Is `opencode serve` running? Start it in a terminal.";
+          throw new Error(why || ("HTTP " + resp.status));
+        }
+        reply = data.choices?.[0]?.message?.content;
       }
-      const reply = data.choices?.[0]?.message?.content;
-      st.textContent = reply != null ? `✓ Connected — reply: ${String(reply).slice(0, 60)}` : "✓ Connected";
+      st.textContent = reply != null ? `âœ“ Connected â€” reply: ${String(reply).slice(0, 60)}` : "âœ“ Connected";
       st.style.color = "var(--green)";
     } catch (e) {
-      st.textContent = `✗ ${(e.message || String(e)).slice(0, 140)}`;
+      st.textContent = `âœ— ${(e.message || String(e)).slice(0, 140)}`;
       st.style.color = "var(--red)";
     }
   });
@@ -258,13 +281,13 @@ export function render(state, root) {
     const st = root.querySelector("#sbStatus");
     saveSettings();
     if (!cloudReady()) { st.textContent = "Fill URL and anon key first."; return; }
-    st.textContent = "Testing…";
+    st.textContent = "Testingâ€¦";
     const { cloudFetch } = await import("../storage.js");
     try {
       await cloudFetch("/rest/v1/curve_data?select=count&limit=1");
-      st.textContent = "✓ Connected";
+      st.textContent = "âœ“ Connected";
     } catch (e) {
-      st.textContent = "✗ " + e.message;
+      st.textContent = "âœ— " + e.message;
     }
   });
 

@@ -1,5 +1,5 @@
 import * as canvas from "./canvas.js";
-import { settings } from "./storage.js";
+import { settings, localTasks, cacheGet, cacheSet } from "./storage.js";
 
 const PROJECT_RE = /(project|essay|paper|lab report|portfolio)/i;
 
@@ -41,6 +41,7 @@ function normalizeAssignment(course, group, a) {
     submitted,
     needsGrading: sub.workflow_state === "pending_review" || sub.workflow_state === "submitted",
     htmlUrl: a.html_url || a.url || null,
+    submissionTypes: Array.isArray(a.submission_types) ? a.submission_types : null,
     groupId: group.id,
     groupName: group.name,
     groupWeight: group.group_weight ?? null,
@@ -79,7 +80,7 @@ async function fetchGroups(courseId) {
   return canvas.getAssignmentGroups(courseId);
 }
 
-async function mapWithConcurrency(items, fn, size = 4) {
+async function mapWithConcurrency(items, fn, size = 6) {
   const out = new Array(items.length);
   let i = 0;
   async function worker() {
@@ -150,6 +151,52 @@ export async function loadAll(onStage) {
     );
     task.fromTodo = true;
     dedupeTodos.push(task);
+  }
+
+  // Merge authoritative submission scores so graded work always shows its grade,
+  // even if the assignment-groups include was scope-limited or empty.
+  // grouped=1 returns { assignments: [], submissions: [{ assignment_id, score, workflow_state }] }.
+  // Results are cached per course (10 min) so repeated refreshes stay fast.
+  const SUB_CACHE_TTL = 10 * 60 * 1000;
+  const getSubsCached = async (c) => {
+    const key = `subs:${c.id}`;
+    const cached = cacheGet(key, null);
+    if (cached && Date.now() - cached.at < SUB_CACHE_TTL) return cached.data;
+    try {
+      const data = await canvas.getStudentSubmissions(c.id);
+      if (data && (data.submissions || []).length) cacheSet(key, { at: Date.now(), data });
+      return data;
+    } catch (e) {
+      if (cached) return cached.data;
+      console.warn("Submission fetch failed for " + c.name, e);
+      throw e;
+    }
+  };
+
+  await mapWithConcurrency(courses, async (c) => {
+    let res;
+    try {
+      res = await getSubsCached(c);
+    } catch { return; }
+    const byAid = new Map((res?.submissions || []).map((s) => [s.assignment_id, s]));
+    for (const t of tasks) {
+      if (t.courseId !== c.id || !t.canvasId) continue;
+      const sub = byAid.get(t.canvasId);
+      if (!sub) continue;
+      if (sub.score != null) t.pointsEarned = sub.score;
+      if (sub.workflow_state) {
+        t.submitted = sub.workflow_state === "submitted" || sub.workflow_state === "graded" || !!sub.graded_at;
+        t.needsGrading = sub.workflow_state === "pending_review" || (sub.workflow_state === "submitted" && sub.score == null);
+      }
+    }
+  });
+
+  // Re-merge locally-added assignments so they survive refreshes.
+  for (const t of localTasks()) {
+    const course = courses.find((c) => c.id === t.courseId);
+    if (course) t.courseName = t.courseName || course.name;
+    t.isLocal = true;
+    if (!tasks.some((x) => x.id === t.id)) tasks.push(t);
   }
 
   return { courses, tasks, todos: dedupeTodos, profile };

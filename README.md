@@ -31,16 +31,18 @@ Static-only mirrors show a notice with a link to a full mirror.
 
 ### Canvas dashboard
 - **Dashboard** — every class and current grade up front, plus "do these first"
+- **Course Detail** — click a course for Canvas-style tabs: Home, Modules, Assignments, Grades, Files
 - **Assignments** — type, weight, points, and due date for everything
 - **Tests** — exams and quizzes separated out
 - **To-Do** — work ranked by urgency, weight, points at stake, and distance from each course's GPA target
 - **Late Work** — syllabus-aware late list
-- **Grades** — current grades vs targets, GPA estimate
-- **Study Plan** — nightly schedule that slots homework before it's due and ramps test prep over the days before an exam
+- **Grades** — what-if calculator: projected grade across graded *and* ungraded work
+- **Study Plan** — nightly schedule with a week calendar that slots homework before it's due and ramps test prep over the days before an exam
 - **Curve Calc** — see what a curve does to your grade; optional shared curve history
-- **Documents** — teacher-posted files with in-app previews and downloads
-- **Announcements** — course announcements in one feed
-- **AI Assistant** — optional chat that knows your courses and open work (bring your own provider/key)
+- **Documents** — teacher-posted files with in-app previews (CanvaDoc + fallbacks) and downloads
+- **Announcements** — course announcements in one feed, per-item read state
+- **Submit in-app** — text entry, URL, file upload, media recording, and student annotation submissions
+- **AI Assistant** — hosted providers (OpenAI / Gemini / OpenRouter / Copilot) or the **local agent** (Ollama on your machine, with Canvas tools)
 
 ### Integrated calculator (native, not an iframe)
 - **Graphing** — implicit equations, inequalities with shading, tables + live regression, system intersections, hover-to-inspect points, click-to-pin points, smart key points (intercepts, vertices, curve intersections)
@@ -84,11 +86,16 @@ No install and no build step — Python 3 standard library only.
 | Proxy (Python) | `api/*.py` (Vercel), `server.py` (local / Render) |
 | Deploy docs | [DEPLOY.md](DEPLOY.md) |
 
-Every proxy implements the same three routes:
+Every proxy implements the same routes:
 
 - `GET/POST /api/canvas?p=<Canvas API path>` — Canvas REST passthrough (adds the caller's token, rewrites pagination links)
 - `GET /api/dl?u=<Canvas file URL>` — authenticated file download
+- `POST /api/ul?u=<Canvas upload URL>` — raw upload relay for in-app submissions (https only, 25 MB cap on serverless mirrors)
 - `POST /api/ai` — AI provider passthrough using the key you supply in the browser
+- `POST /api/agent` — local agent (Ollama + Canvas tools); hosted mirrors return a clear "local only" message
+
+Note: Netlify and Vercel serverless functions cap request bodies (~6 MB / ~4.5 MB), so very
+large submission uploads work best on the local server or the Render mirror.
 
 ## Optional cloud storage
 

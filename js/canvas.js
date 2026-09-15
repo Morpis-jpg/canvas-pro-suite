@@ -102,6 +102,41 @@ export function getAssignmentGroups(courseId) {
   return all(`/api/v1/courses/${courseId}/assignment_groups?include[]=assignments&assignment[]=submission&override_assignment_dates=false`);
 }
 
+// All of the current user's submissions for a course — the canonical source of
+// "did I get a grade" that works even when the group include is scope-limited.
+// grouped=1 returns { assignments: [], submissions: [{ assignment_id, score, workflow_state }] }.
+// Pages through every result so a large course never misses grades.
+export async function getStudentSubmissions(courseId) {
+  const out = { assignments: [], submissions: [] };
+  let path = `/api/v1/courses/${courseId}/students/submissions?student_ids[]=self&grouped=1`;
+  while (path) {
+    const r = buildRequest(path);
+    const res = await fetch(r.url, { headers: r.headers });
+    if (!res.ok) {
+      let msg = errorFrom(res, res.status);
+      try {
+        const j = await res.json();
+        if (typeof j === "object") msg = j.errors?.[0]?.message || j.message || JSON.stringify(j);
+      } catch {}
+      throw new Error(msg);
+    }
+    const data = await parseJson(res);
+    if (data) {
+      out.assignments = out.assignments.concat(data.assignments || []);
+      out.submissions = out.submissions.concat(data.submissions || []);
+    }
+    const link = res.headers.get("Link") || "";
+    const m = /<([^>]+)>;\s*rel="next"/.exec(link);
+    path = m ? m[1] : null;
+  }
+  return out;
+}
+
+// Generic write helper for the canvas proxy (submit work, upload preflight…).
+export function post(path, body) {
+  return api(path, { method: "POST", body });
+}
+
 export function getTodos() {
   return api("/api/v1/users/self/todo?include[]=course");
 }
@@ -126,12 +161,7 @@ export function getFile(courseId, fileId) {
 // uses. Works for PDF/office/images and rides on the file-read access the
 // listing already has (no extra download scope needed).
 export async function getCanvadocSession(relPath) {
-  let path = relPath;
-  try {
-    const parsed = new URL(relPath);
-    path = parsed.pathname + (parsed.search || "");
-  } catch {}
-  const r = await api(path);
+  const r = await api(relPath);
   const su = (r && (r.session_url || r.url)) || r;
   return typeof su === "string" && /^https?:\/\//.test(su) ? su : null;
 }

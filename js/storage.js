@@ -112,6 +112,25 @@ export function clearDone() {
   localStorage.setItem(DONE_KEY, "[]");
 }
 
+// ---------- locally-added assignments (survive refreshes, merged back into load) ----------
+const LOCAL_TASKS_KEY = PREFIX + "localTasks";
+
+export function localTasks() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_TASKS_KEY) || "[]"); }
+  catch { return []; }
+}
+
+export function saveLocalTask(task) {
+  const list = localTasks();
+  const i = list.findIndex((t) => t.id === task.id);
+  if (i >= 0) list[i] = task; else list.push(task);
+  localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(list));
+}
+
+export function removeLocalTask(id) {
+  localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(localTasks().filter((t) => t.id !== id)));
+}
+
 // ---------- effort log (minutes actually spent, adapts estimates) ----------
 const TIME_KEY = PREFIX + "timeLog";
 

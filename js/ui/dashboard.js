@@ -22,14 +22,14 @@ export function render(state, root) {
   for (const t of open) openByCourse.set(t.courseId, (openByCourse.get(t.courseId) || 0) + 1);
   const avgGrade = courses.filter((c) => c.currentScore != null).reduce((a, c) => a + c.currentScore, 0);
 
-  const courseCards = courses.map((c) => {
+const courseCards = courses.map((c) => {
     const spread = c.currentScore != null ? pct(c.currentScore) : "—";
     const delta = c.currentScore != null ? Math.round((c.currentScore - c.targetGrade) * 10) / 10 : null;
     const deltaCls = delta == null ? "" : delta >= 0 ? "grade-high" : "grade-low";
     const fill = c.currentScore != null ? Math.max(0, Math.min(100, c.currentScore)) : 0;
     const nOpen = openByCourse.get(c.id) || 0;
     return `
-      <div class="card course-card">
+      <div class="card course-card" data-course-id="${c.id}" style="cursor:pointer">
         <div class="top">
           <div>
             <h3>${esc(c.name)}</h3>
@@ -76,8 +76,8 @@ export function render(state, root) {
       <div class="card"><div class="small muted">Classes</div><div class="stat"><b>${courses.length}</b></div></div>
     </div>
 
-    <h2 class="mt">Classes &amp; grades</h2>
-    <div class="grid grid-3">${courseCards}</div>
+    <h2 class="mt">Classes & grades</h2>
+    <div class="grid grid-3" id="courseGrid">${courseCards}</div>
 
     <h2 class="mt">Do these first</h2>
     <div class="card">${focusRows}</div>
@@ -85,4 +85,12 @@ export function render(state, root) {
     <h2 class="mt">Tonight</h2>
     <div class="card day-card">${todayRows}</div>
   `;
+
+  root.querySelectorAll(".course-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const courseId = +card.dataset.courseId;
+      const event = new CustomEvent("tab-change", { detail: { tab: "courseDetail", courseId } });
+      window.dispatchEvent(event);
+    });
+  });
 }

@@ -14,6 +14,9 @@ Vanilla ES modules, no build step, no framework. Runs on the user's machine:
   says to. `main` is the "I'm happy with this" stable snapshot.
 - Keep `origin/beta` and `origin/main` up to date after commits when a remote
   is configured (push only the branch you committed to).
+- **`server.py` enforces this**: it refuses to start unless the checkout is on
+  `beta`, and shouts in the server log if the branch is switched mid-run
+  (the site would otherwise silently serve whatever branch is checked out).
 
 ## Release / versioning convention
 
@@ -47,8 +50,35 @@ Vanilla ES modules, no build step, no framework. Runs on the user's machine:
   (local `opencode serve`, optional) | gemini | openai | openrouter | copilot.
 - Net-new topics: try to keep the shape match what's already there.
 
+## Task inbox (Obsidian vault)
+
+Use the Obsidian vault at `/Users/Devansh/opencode-vault` as the persistent
+inbox + log between the user and the agent. Read `README.md` there first.
+
+- `Ideas/Integrations.md` + `Ideas/Bugs.md` — the user drops in requested work
+  as `- [ ]` bullets. When the user says "check the vault", read these, work
+  through the requested (unchecked) items. On completion **cut the item out of
+  the Ideas file** (do not leave it ticked) and move the full documentation to
+  the matching Logs file. Ideas files hold only open items.
+- `Logs/Integrations.md` + `Logs/Bugs.md` — after finishing each task, append a
+  dated `## YYYY-MM-DD — <title>` entry documenting what was done (files
+  touched, commit/rev, any caveats like "needs server restart").
+
 ## Security rules
 
 - The Canvas token and AI keys live in localStorage only, sent only to the
   local server on this machine. Never echo them into code, logs, or commits.
 - Never commit `.env`-style secrets, auth files, or the user's personal data.
+## This repo (canvas-pro-suite)
+
+Upstream alpha is Wizard24-24/canvas-pro; this repo is the combined build that adds the
+native calculator tab, public mirrors, and per-host proxies.
+
+- **When adding a new /api/* route, add it to ALL proxies**: unctions/api/*.js`n  (Cloudflare), 
+etlify/functions/*.mjs, pi/*.py (Vercel), and server.py (local/Render).
+- **All fetch paths must stay relative** (pi/canvas, pi/dl, pi/ai, pi/ul, pi/agent,
+  ersion.json) so mirrors serve correctly from subpaths (GitHub Pages).
+- **Mirrors auto-deploy from eta**: Cloudflare Pages, Netlify (workflow), Render, plus
+  GitHub Pages + Firebase (static-only). Pushing to eta is the release action here.
+- The calculator lives in 	ools/calculator/ (standalone) and is mounted natively by
+  js/ui/calculator.js (Shadow DOM, vendored mathjs + MathJax in endor/).

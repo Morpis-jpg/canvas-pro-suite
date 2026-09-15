@@ -1,7 +1,8 @@
 import { esc, fmtDate, daysUntil, toast } from "../utils.js";
 import * as canvas from "../canvas.js";
 import { rawEstimate } from "../schedule.js";
-import { timeLogs, logTime } from "../storage.js";
+import { timeLogs, logTime, removeLocalTask } from "../storage.js";
+import { openSubmissionModal } from "./submissionModal.js";
 
 let open = false;
 
@@ -19,7 +20,7 @@ export async function openTask(task, state) {
   const wrap = document.createElement("div");
   wrap.className = "modal-overlay hidden";
   wrap.innerHTML = `
-    <div class="modal">
+    <div class="modal modal-wide">
       <div class="modal-head">
         <h2>${esc(task.title)}</h2>
         <button class="btn btn-small btn-ghost" data-close>✕</button>
@@ -33,6 +34,8 @@ export async function openTask(task, state) {
         <span class="tag ${task.type === "exam" ? "tag-red" : task.type === "quiz" ? "tag-yellow" : task.type === "project" ? "tag-purple" : "tag-blue"}">${esc(task.type)}</span>
         <span class="tag ${task.submitted ? "tag-green" : "tag-yellow"}">${task.submitted ? "Submitted" : "Not submitted"}</span>
       </div>
+      ${!task.submitted && task.canvasId ? `<button class="btn btn-primary submit-btn" data-submit>Submit Assignment</button>` : ""}
+      ${task.isLocal ? `<button class="btn btn-ghost btn-small" data-dellocal>Delete this local assignment</button>` : ""}
       <div class="effort">
         <div class="flex between" style="align-items:baseline">
           <span class="small muted">Effort tracker · actually been studying it?</span>
@@ -99,5 +102,26 @@ export async function openTask(task, state) {
       const box = wrap.querySelector(".desc");
       if (box) box.innerHTML = "<p class='muted'>Could not load the description (offline or token issue).</p>";
     }
+  }
+
+  // Submit button handler
+  const submitBtn = wrap.querySelector("[data-submit]");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", () => openSubmissionModal(task, state, close));
+  }
+
+  // Local assignments can be deleted since they're only stored on this device.
+  const delLocal = wrap.querySelector("[data-dellocal]");
+  if (delLocal) {
+    delLocal.addEventListener("click", () => {
+      if (!confirm(`Delete “${task.title}” from this device? (Canvas is untouched.)`)) return;
+      removeLocalTask(task.id);
+      const i = (state?.data?.tasks || []).findIndex((t) => t.id === task.id);
+      if (i >= 0) state.data.tasks.splice(i, 1);
+      close();
+      const active = document.querySelector(".sidebar .tab-btn.active");
+      if (active) active.click();
+      toast("Local assignment deleted.", "ok");
+    });
   }
 }

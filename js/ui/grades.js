@@ -1,12 +1,37 @@
 import { pct, esc } from "../utils.js";
 
-const GPA_SCALE = { "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7, "C+": 2.3, "C": 2.0, "C-": 1.7, "D+": 1.3, "D": 1.0, "D-": 0.7, "F": 0.0 };
+const GPA_SCALE = { "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7, "C+": 2.3, "C": 2.0, "C-": 1.7, "D+": 1.3, "D": 1.0, "D-": 0.7, "F": 0.0 };
+
+// Robust letter→points lookup. Normalizes case/marks and falls back to a
+// standard letter derived from the numeric score when Canvas didn't hand us a
+// letter (so a scored course is never silently counted as 0.0 in the GPA).
+function gpaLetterFor(c) {
+  let g = String(c.currentGrade || "").trim().toUpperCase();
+  if (!g && c.currentScore != null) {
+    const s = c.currentScore;
+    if (s >= 93) g = "A";
+    else if (s >= 90) g = "A-";
+    else if (s >= 87) g = "B+";
+    else if (s >= 83) g = "B";
+    else if (s >= 80) g = "B-";
+    else if (s >= 77) g = "C+";
+    else if (s >= 73) g = "C";
+    else if (s >= 70) g = "C-";
+    else if (s >= 67) g = "D+";
+    else if (s >= 63) g = "D";
+    else if (s >= 60) g = "D-";
+    else g = "F";
+  }
+  return g && GPA_SCALE[g] != null ? g : null;
+}
 
 export function render(state, root) {
   const { courses } = state.data;
 
-  const graded = courses.filter((c) => c.currentScore != null);
-  const currentGPA = graded.reduce((a, c) => a + (GPA_SCALE[c.currentGrade] ?? 0), 0) / (graded.length || 1);
+  const graded = courses.filter((c) => gpaLetterFor(c) != null);
+  const currentGPA = graded.length
+    ? graded.reduce((a, c) => a + GPA_SCALE[gpaLetterFor(c)], 0) / graded.length
+    : 0;
   const onTrack = courses.filter((c) => c.currentScore != null && c.currentScore >= c.targetGrade).length;
 
   const rows = courses.map((c) => {

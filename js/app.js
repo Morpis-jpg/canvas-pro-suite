@@ -24,6 +24,7 @@ import { render as renderDocuments } from "./ui/documents.js";
 import { render as renderAnnouncements } from "./ui/announcements.js";
 import { render as renderLate } from "./ui/latelist.js";
 import { render as renderAi } from "./ui/ai.js";
+import { render as renderCourseDetail } from "./ui/courseDetail.js";
 import { render as renderCalculator } from "./ui/calculator.js";
 
 const VIEWS = {
@@ -39,6 +40,7 @@ const VIEWS = {
   announcements: renderAnnouncements,
   latelist: renderLate,
   ai: renderAi,
+  courseDetail: renderCourseDetail,
   calculator: renderCalculator,
 };
 
@@ -160,7 +162,9 @@ function bindEvents() {
   // Event delegation: works even if a node is replaced or a direct binding
   // was set up under an error, and catches clicks on children.
   document.addEventListener("click", (e) => {
-    const tab = e.target.closest && e.target.closest(".tab-btn");
+    // Only the sidebar's own tab buttons trigger global navigation. Course
+    // detail tabs (`.course-tabs .tab-btn`) manage their own panels.
+    const tab = e.target.closest && e.target.closest(".sidebar .tab-btn");
     if (tab) {
       switchTab(tab);
       return;
@@ -178,28 +182,39 @@ function bindEvents() {
       return;
     }
     if (e.target.closest && e.target.closest("#userBtn")) {
-      switchTab(document.querySelector('.tab-btn[data-tab="settings"]'));
+      switchTab(document.querySelector('.sidebar .tab-btn[data-tab="settings"]'));
+    }
+  });
+
+  // Handle course detail navigation via custom event (dashboard course cards
+  // navigate in, the detail view's back button navigates out).
+  window.addEventListener("tab-change", (e) => {
+    const { tab, courseId } = e.detail || {};
+    if (tab === "courseDetail" && courseId) {
+      state.ui = state.ui || {};
+      state.ui.courseDetailId = courseId;
+      renderTab("courseDetail");
+      return;
+    }
+    if (tab === "dashboard") {
+      const ui = state.ui || {};
+      delete ui.courseDetailId;
+      delete ui.courseDetailTab;
+      state.tab = "dashboard";
+      const dash = document.querySelector('.sidebar .tab-btn[data-tab="dashboard"]');
+      if (dash) {
+        $$(".sidebar .tab-btn").forEach((b) => b.classList.remove("active"));
+        dash.classList.add("active");
+      }
+      renderTab("dashboard");
     }
   });
 }
 
-function syncCalculatorTheme() {
-  const embedded = window.__gcalcInstance;
-  if (embedded?.setTheme) {
-    embedded.setTheme(settings().theme, settings().mode);
-    return;
-  }
-  const frame = document.querySelector("#calculatorFrame");
-  if (!frame?.contentWindow) return;
-  frame.contentWindow.postMessage({ type: "canvas-pro-theme", palette: settings().theme, mode: settings().mode }, "*");
-}
-
-window.syncCalculatorTheme = syncCalculatorTheme;
-
 function switchTab(btn) {
   if (!btn) return;
   try {
-    $$(".tab-btn").forEach((b) => b.classList.remove("active"));
+    $$(".sidebar .tab-btn").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     state.tab = btn.dataset.tab;
     renderTab(state.tab);
@@ -262,6 +277,19 @@ const probeL = {
   },
 };
 
+function syncCalculatorTheme() {
+  const embedded = window.__gcalcInstance;
+  if (embedded?.setTheme) {
+    embedded.setTheme(settings().theme, settings().mode);
+    return;
+  }
+  const frame = document.querySelector("#calculatorFrame");
+  if (!frame?.contentWindow) return;
+  frame.contentWindow.postMessage({ type: "canvas-pro-theme", palette: settings().theme, mode: settings().mode }, "*");
+}
+
+window.syncCalculatorTheme = syncCalculatorTheme;
+
 async function serverStatusOnBoot() {
   const note = $("#serverNote");
   if (!note) return;
@@ -308,7 +336,10 @@ async function init() {
       state.data = cached;
       showApp();
       renderTab("dashboard");
-      setSync("Loaded offline · refresh to sync", "");
+      setSync("Loaded offline · refreshing…", "");
+      // Auto-sync in the background: the cached view is instant, then grades /
+      // to-dos update when the fresh data lands.
+      setTimeout(() => fetchAll().catch(() => setSync("Sync failed", "err")), 350);
     } else if (!(await connectAndLoad())) {
       // Couldn't reconnect; keep the connect screen visible with the error.
     } else {
