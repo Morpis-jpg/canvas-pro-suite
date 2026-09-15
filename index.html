@@ -31,7 +31,7 @@
       var err = document.getElementById('bootError');
       if (o) o.classList.remove('hidden');
       if (err) {
-        var trace = (stack || '').split('\n').slice(0, 2).join('  â¤·  ');
+        var trace = (stack || '').split('\n').slice(0, 2).join('  ⤷  ');
         err.textContent = msg + (trace ? '  [at: ' + trace + ']' : '') + '  (rev ' + window.__rev + ')';
         err.classList.remove('hidden');
       }
@@ -55,7 +55,7 @@
   <div id="app" class="app hidden">
     <header class="topbar">
       <div class="brand">
-        <span class="logo">â—§</span>
+        <span class="logo">◧</span>
         <span class="brand-name">Canvas&nbsp;Pro</span>
         <span id="versionBadge" class="badge badge-beta">BETA</span>
       </div>
@@ -70,27 +70,27 @@
     <div class="layout">
       <nav class="sidebar">
         <div class="nav-group">Home</div>
-        <button class="tab-btn active" data-tab="dashboard"><span class="ti">ðŸ“Š</span>Dashboard</button>
+        <button class="tab-btn active" data-tab="dashboard"><span class="ti">📊</span>Dashboard</button>
 
         <div class="nav-group">Classwork</div>
-        <button class="tab-btn" data-tab="assignments"><span class="ti">ðŸ“</span>Assignments</button>
-        <button class="tab-btn" data-tab="tests"><span class="ti">ðŸ§ª</span>Tests</button>
-        <button class="tab-btn" data-tab="todo"><span class="ti">âœ…</span>To-Do</button>
-        <button class="tab-btn" data-tab="latelist"><span class="ti">ðŸ•—</span>Late Work</button>
-        <button class="tab-btn" data-tab="grades"><span class="ti">ðŸŽ¯</span>Grades</button>
+        <button class="tab-btn" data-tab="assignments"><span class="ti">📝</span>Assignments</button>
+        <button class="tab-btn" data-tab="tests"><span class="ti">🧪</span>Tests</button>
+        <button class="tab-btn" data-tab="todo"><span class="ti">✅</span>To-Do</button>
+        <button class="tab-btn" data-tab="latelist"><span class="ti">🕗</span>Late Work</button>
+        <button class="tab-btn" data-tab="grades"><span class="ti">🎯</span>Grades</button>
 
         <div class="nav-group">Study</div>
-        <button class="tab-btn" data-tab="study"><span class="ti">ðŸ§ </span>Study Plan</button>
-        <button class="tab-btn" data-tab="curve"><span class="ti">ðŸ“ˆ</span>Curve Calc</button>
-        <button class="tab-btn" data-tab="calculator"><span class="ti">âˆ¿</span>Calculator</button>
-        <button class="tab-btn" data-tab="ai"><span class="ti">ðŸ¤–</span>AI Assistant</button>
+        <button class="tab-btn" data-tab="study"><span class="ti">🧠</span>Study Plan</button>
+        <button class="tab-btn" data-tab="curve"><span class="ti">📈</span>Curve Calc</button>
+        <button class="tab-btn" data-tab="calculator"><span class="ti">∿</span>Calculator</button>
+        <button class="tab-btn" data-tab="ai"><span class="ti">🤖</span>AI Assistant</button>
 
         <div class="nav-group">Resources</div>
-        <button class="tab-btn" data-tab="documents"><span class="ti">ðŸ“</span>Documents</button>
-        <button class="tab-btn" data-tab="announcements"><span class="ti">ðŸ“£</span>Announcements</button>
+        <button class="tab-btn" data-tab="documents"><span class="ti">📁</span>Documents</button>
+        <button class="tab-btn" data-tab="announcements"><span class="ti">📣</span>Announcements</button>
 
         <div class="nav-group">System</div>
-        <button class="tab-btn" data-tab="settings"><span class="ti">âš™ï¸</span>Settings</button>
+        <button class="tab-btn" data-tab="settings"><span class="ti">⚙️</span>Settings</button>
       </nav>
 
       <main id="mainContent" class="main"></main>
@@ -99,13 +99,13 @@
 
   <div class="loading overlay hidden" id="globalLoading">
     <div class="spinner"></div>
-    <p id="loadingText">Loadingâ€¦</p>
+    <p id="loadingText">Loading…</p>
   </div>
 
   <div id="onboarding" class="onboarding">
 
     <div class="onboarding-card">
-      <h1>â—§ Canvas Pro</h1>
+      <h1>◧ Canvas Pro</h1>
       <p class="subtitle">A better, grade-aware view of your Canvas classes.</p>
       <p class="subtitle">Your access token is sent only to the app's Canvas proxy to load your classes and grades, and is never stored on any server.</p>
 
@@ -116,12 +116,12 @@
 
       <label class="field">
         <span>Canvas access token</span>
-        <input id="onToken" type="password" placeholder="Paste your token (Account â†’ Settings â†’ New Access Token)" />
+        <input id="onToken" type="password" placeholder="Paste your token (Account → Settings → New Access Token)" />
       </label>
 
       <p class="hint error hidden" id="onboardingError"></p>
       <p class="hint error hidden" id="bootError"></p>
-      <p class="hint" id="serverNote">Checking local serverâ€¦</p>
+      <p class="hint" id="serverNote">Checking local server…</p>
 
       <button id="onConnect" class="btn btn-primary btn-block">Connect to Canvas</button>
     </div>

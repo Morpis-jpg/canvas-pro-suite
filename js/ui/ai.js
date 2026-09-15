@@ -27,20 +27,20 @@ export function render(state, root, isStale = () => false) {
 
   root.innerHTML = `
     <h1>AI Assistant</h1>
-    <p class="subtitle">Chat with a model that already knows your courses, grades, and open work. Configure the provider in <b>Settings â†’ AI</b> first.</p>
+    <p class="subtitle">Chat with a model that already knows your courses, grades, and open work. Configure the provider in <b>Settings → AI</b> first.</p>
 
-    ${(!s.aiKey && s.aiProvider !== "opencode") ? `<div class="card mt"><b>ðŸ”‘ No AI key set yet.</b> Go to <b>Settings â†’ AI</b> and pick a provider + key (or choose <b>opencode</b> to use your local opencode â€” no key needed).</div>` : ""}
+    ${(!s.aiKey && s.aiProvider !== "opencode") ? `<div class="card mt"><b>🔑 No AI key set yet.</b> Go to <b>Settings → AI</b> and pick a provider + key (or choose <b>opencode</b> to use your local opencode — no key needed).</div>` : ""}
 
     <div class="card chat-card mt">
       <div class="chat-wrap" id="chatWrap" aria-live="polite"></div>
       <div class="ai-input-row">
-        <textarea id="aiIn" rows="2" placeholder="Ask about your coursework, e.g. â€œwhat should I do first today?â€" style="flex:1;padding:11px 13px;border-radius:11px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-size:13px;resize:none"></textarea>
+        <textarea id="aiIn" rows="2" placeholder="Ask about your coursework, e.g. “what should I do first today?”" style="flex:1;padding:11px 13px;border-radius:11px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-size:13px;resize:none"></textarea>
         <button id="aiSend" class="btn btn-primary" style="align-self:flex-end">Send</button>
       </div>
       <div class="ai-tools">
         <label class="check"><input type="checkbox" id="aiCtx" checked /> <span>Include my Canvas snapshot</span></label>
         <button id="aiClear" class="btn btn-ghost btn-small">Clear chat</button>
-        <span class="small muted" style="margin-left:auto">provider: ${esc(s.aiProvider)}${s.aiModel ? " Â· " + esc(s.aiModel) : ""}</span>
+        <span class="small muted" style="margin-left:auto">provider: ${esc(s.aiProvider)}${s.aiModel ? " · " + esc(s.aiModel) : ""}</span>
       </div>
     </div>
   `;
@@ -87,7 +87,7 @@ export function render(state, root, isStale = () => false) {
         if (!isStale()) {
           const div = document.createElement("div");
           div.className = "msg bot tool-note";
-          div.textContent = `â˜‘ ${a.title || "Assignment"} marked ${a.done ? "done" : "open"} in the app.`;
+          div.textContent = `☑ ${a.title || "Assignment"} marked ${a.done ? "done" : "open"} in the app.`;
           wrap.appendChild(div);
           wrap.scrollTop = wrap.scrollHeight;
         }
@@ -145,7 +145,7 @@ export function render(state, root, isStale = () => false) {
         renderBubbles(data);
         return;
       }
-      if (prov !== "opencode" && !s2.aiKey) throw new Error("No AI key configured â€” add one in Settings â†’ AI.");
+      if (prov !== "opencode" && !s2.aiKey) throw new Error("No AI key configured — add one in Settings → AI.");
       const body = { model: s2.aiModel || undefined };
       if (prov === "opencode") {
         const withCtx = state.ai.ctxOn ? `[My Canvas context]\n${snapshot(state)}\n\n---\n${text}` : text;
@@ -189,11 +189,11 @@ export function render(state, root, isStale = () => false) {
       const nf = (err instanceof TypeError && /failed to fetch/i.test(err.message)) || /networkerror/i.test(err.message || "");
       const msg = nf
         ? prov === "opencode"
-          ? "âš ï¸ Couldn't reach `opencode serve` (is it running? Start it in a terminal: `opencode serve`)."
-          : "âš ï¸ Couldn't reach the local server (\"Failed to fetch\"). This is not an API-key problem â€” make sure the server has been restarted with the latest code: stop it with Ctrl+C, then run `npm start` again, and reload this page."
-        : "âš ï¸ " + (err.message || String(err));
+          ? "⚠️ Couldn't reach `opencode serve` (is it running? Start it in a terminal: `opencode serve`)."
+          : "⚠️ Couldn't reach the local server (\"Failed to fetch\"). This is not an API-key problem — make sure the server has been restarted with the latest code: stop it with Ctrl+C, then run `npm start` again, and reload this page."
+        : "⚠️ " + (err.message || String(err));
       if (!isStale()) addMsg("bot", msg);
-      if (nf && prov !== "opencode") toast("No response from local server â€” restart it (Ctrl+C, then npm start).", "err");
+      if (nf && prov !== "opencode") toast("No response from local server — restart it (Ctrl+C, then npm start).", "err");
     }
   }
 }

@@ -48,7 +48,7 @@ def check_branch_ok(fail_hard=True):
         sys.exit(3)
     return branch
 
-def rewrite_pagelink(value, host):
+def rewrite_pagelink(value, host, scheme="http"):
     """Rewrite Canvas pagination Link header to point back at this proxy."""
     parts = []
     for link in value.split(","):
@@ -60,7 +60,7 @@ def rewrite_pagelink(value, host):
         path = m.path
         if m.query:
             path += "?" + m.query
-        proxied = "http://" + host + "/api/canvas?p=" + urllib.parse.quote(path, safe="")
+        proxied = scheme + "://" + host + "/api/canvas?p=" + urllib.parse.quote(path, safe="")
         parts.append(f"<{proxied}>; {link.split('>')[1].strip()}" if ";" in link else f"<{proxied}>")
     return ", ".join(parts)
 
@@ -125,7 +125,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         rel = resp.headers.get("Link")
         if rel:
             host = self.headers.get("Host", "localhost:" + str(PORT_START))
-            self.send_header("Link", rewrite_pagelink(rel, host))
+            scheme = (self.headers.get("X-Forwarded-Proto") or "http").split(",")[0].strip() or "http"
+            if host.startswith("localhost") or host.startswith("127.0.0.1"):
+                scheme = "http"
+            self.send_header("Link", rewrite_pagelink(rel, host, scheme))
         self.send_header("Content-Length", str(len(body_out)))
         self.end_headers()
         self.wfile.write(body_out)

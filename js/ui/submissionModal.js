@@ -22,12 +22,12 @@ export async function openTask(task, state) {
     <div class="modal modal-wide">
       <div class="modal-head">
         <h2>${esc(task.title)}</h2>
-        <button class="btn btn-small btn-ghost" data-close>Ã¢Å“â€¢</button>
+        <button class="btn btn-small btn-ghost" data-close>✕</button>
       </div>
       <div class="meta">
-        <div class="small muted">${esc(task.courseName || "")}${task.groupName ? ` Ã‚Â· ${esc(task.groupName)}` : ""}${task.groupWeight != null ? ` Ã‚Â· ${task.groupWeight}%` : ""}</div>
-        <div class="small muted">Due ${fmtDate(task.dueAt)}${due != null ? ` Ã‚Â· ${due < 0 ? Math.abs(due) + "d overdue" : due === 0 ? "today" : "in " + due + "d"}` : ""}</div>
-        <div class="small muted">${task.pointsPossible ? task.pointsPossible + " pts" : ""}${task.baseMinutes ? ` Ã‚Â· ~${task.baseMinutes} min` : ""}</div>
+        <div class="small muted">${esc(task.courseName || "")}${task.groupName ? ` · ${esc(task.groupName)}` : ""}${task.groupWeight != null ? ` · ${task.groupWeight}%` : ""}</div>
+        <div class="small muted">Due ${fmtDate(task.dueAt)}${due != null ? ` · ${due < 0 ? Math.abs(due) + "d overdue" : due === 0 ? "today" : "in " + due + "d"}` : ""}</div>
+        <div class="small muted">${task.pointsPossible ? task.pointsPossible + " pts" : ""}${task.baseMinutes ? ` · ~${task.baseMinutes} min` : ""}</div>
       </div>
       <div class="status-row">
         <span class="tag ${task.type === "exam" ? "tag-red" : task.type === "quiz" ? "tag-yellow" : task.type === "project" ? "tag-purple" : "tag-blue"}">${esc(task.type)}</span>
@@ -36,17 +36,17 @@ export async function openTask(task, state) {
       ${!task.submitted ? `<button class="btn btn-primary submit-btn" data-submit>Submit Assignment</button>` : ""}
       <div class="effort">
         <div class="flex between" style="align-items:baseline">
-          <span class="small muted">Effort tracker Ã‚Â· actually been studying it?</span>
+          <span class="small muted">Effort tracker · actually been studying it?</span>
           <span class="small muted" id="effortState"></span>
         </div>
         <div class="flex" style="gap:8px;margin-top:6px">
-          <input id="effortMins" type="number" min="1" max="600" placeholder="Minutes spentÃ¢â‚¬Â¦" style="flex:1;max-width:180px;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text)" />
+          <input id="effortMins" type="number" min="1" max="600" placeholder="Minutes spent…" style="flex:1;max-width:180px;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text)" />
           <button id="effortLog" class="btn btn-small">Log effort</button>
         </div>
       </div>
-      <div class="desc">${task.description ? sanitize(task.description) : "<p class='muted'>Loading descriptionÃ¢â‚¬Â¦</p>"}</div>
+      <div class="desc">${task.description ? sanitize(task.description) : "<p class='muted'>Loading description…</p>"}</div>
       <div class="modal-foot">
-        ${task.htmlUrl ? `<a class="btn" href="${esc(task.htmlUrl)}" target="_blank" rel="noopener">Open on Canvas Ã¢â€ â€”</a>` : ""}
+        ${task.htmlUrl ? `<a class="btn" href="${esc(task.htmlUrl)}" target="_blank" rel="noopener">Open on Canvas ↗</a>` : ""}
       </div>
     </div>`;
 
@@ -73,7 +73,7 @@ export async function openTask(task, state) {
 
   function paintEffort() {
     const cur = timeLogs()[task.id];
-    if (cur) stateEl.textContent = `Logged ${cur.mins} min (${cur.count}Ãƒâ€”) Ã‚Â· estimate ${estimate} min`;
+    if (cur) stateEl.textContent = `Logged ${cur.mins} min (${cur.count}×) · estimate ${estimate} min`;
     else stateEl.textContent = `Estimate: ~${estimate} min for this`;
   }
   paintEffort();
@@ -82,7 +82,7 @@ export async function openTask(task, state) {
     const m = minsIn.value;
     if (!m || +m <= 0) { toast("Enter minutes first.", ""); return; }
     logTime(task.id, +m, estimate);
-    toast(`Logged ${m} min Ã¢â‚¬â€ ${task.courseName} will adapt to this.`, "ok");
+    toast(`Logged ${m} min — ${task.courseName} will adapt to this.`, "ok");
     minsIn.value = "";
     paintEffort();
   });
@@ -111,11 +111,11 @@ export async function openTask(task, state) {
 
 // Canvas submission types
 const SUBMISSION_TYPES = [
-  { id: "online_text_entry", label: "Text Entry", icon: "Ã°Å¸â€œÂ", description: "Type or paste your response directly" },
-  { id: "online_url", label: "Website URL", icon: "Ã°Å¸â€â€”", description: "Submit a link (Google Docs, GitHub, etc.)" },
-  { id: "online_upload", label: "File Upload", icon: "Ã°Å¸â€œÅ½", description: "Upload files from your computer" },
-  { id: "media_recording", label: "Media Recording", icon: "Ã°Å¸Å½Â¥", description: "Record audio/video or upload media" },
-  { id: "student_annotation", label: "Student Annotation", icon: "Ã°Å¸â€“Å Ã¯Â¸Â", description: "Annotate a document provided by your teacher" },
+  { id: "online_text_entry", label: "Text Entry", icon: "📝", description: "Type or paste your response directly" },
+  { id: "online_url", label: "Website URL", icon: "🔗", description: "Submit a link (Google Docs, GitHub, etc.)" },
+  { id: "online_upload", label: "File Upload", icon: "📎", description: "Upload files from your computer" },
+  { id: "media_recording", label: "Media Recording", icon: "🎥", description: "Record audio/video or upload media" },
+  { id: "student_annotation", label: "Student Annotation", icon: "🖊️", description: "Annotate a document provided by your teacher" },
 ];
 
 export function openSubmissionModal(task, state, onClose) {
@@ -136,7 +136,7 @@ export function openSubmissionModal(task, state, onClose) {
     <div class="modal modal-wide">
       <div class="modal-head">
         <h2>Submit: ${esc(task.title)}</h2>
-        <button class="btn btn-small btn-ghost" data-close>Ã¢Å“â€¢</button>
+        <button class="btn btn-small btn-ghost" data-close>✕</button>
       </div>
       ${canSubmit ? `
       <div class="submission-tabs" role="tablist">
@@ -156,8 +156,8 @@ export function openSubmissionModal(task, state, onClose) {
         <button class="btn btn-primary" id="doSubmit" disabled>Submit Assignment</button>
       </div>` : `
       <div class="submission-unavailable">
-        <p>This assignment isn't using Canvas's online submission Ã¢â‚¬â€ it expects something else${blocked.length ? " (" + esc(blocked.join(", ")) + ")" : ""}.</p>
-        ${task.htmlUrl ? `<a class="btn" href="${esc(task.htmlUrl)}" target="_blank" rel="noopener">Open on Canvas Ã¢â€ â€”</a>` : ""}
+        <p>This assignment isn't using Canvas's online submission — it expects something else${blocked.length ? " (" + esc(blocked.join(", ")) + ")" : ""}.</p>
+        ${task.htmlUrl ? `<a class="btn" href="${esc(task.htmlUrl)}" target="_blank" rel="noopener">Open on Canvas ↗</a>` : ""}
         <button class="btn btn-ghost" data-close>Close</button>
       </div>`}
     </div>
@@ -225,7 +225,7 @@ function renderSubmissionPanel(type, task) {
       return `
         <div class="sub-panel-content">
           <p class="muted">${type.description}</p>
-          <textarea name="text_entry" rows="10" placeholder="Type your response hereÃ¢â‚¬Â¦" style="width:100%;min-height:200px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-family:inherit;font-size:14px;resize:vertical"></textarea>
+          <textarea name="text_entry" rows="10" placeholder="Type your response here…" style="width:100%;min-height:200px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-family:inherit;font-size:14px;resize:vertical"></textarea>
           <p class="small muted mt">Tip: You can use Markdown formatting.</p>
         </div>
       `;
@@ -242,9 +242,9 @@ function renderSubmissionPanel(type, task) {
         <div class="sub-panel-content">
           <p class="muted">${type.description}</p>
           <div class="drop-zone" id="dropZone">
-            <div class="drop-icon">Ã°Å¸â€œÅ½</div>
+            <div class="drop-icon">📎</div>
             <div class="drop-text">Drag & drop files here, or click to browse</div>
-            <div class="drop-hint">Max 500MB per file Ã‚Â· Multiple files allowed</div>
+            <div class="drop-hint">Max 500MB per file · Multiple files allowed</div>
             <input type="file" name="files" multiple hidden accept="*">
           </div>
           <div class="file-list" id="fileList"></div>
@@ -256,15 +256,15 @@ function renderSubmissionPanel(type, task) {
           <p class="muted">${type.description}</p>
           <div class="media-options">
             <button type="button" class="media-btn" data-action="record-audio">
-              <span class="media-icon">Ã°Å¸Å½Â¤</span>
+              <span class="media-icon">🎤</span>
               <div><strong>Record Audio</strong><span>Use your microphone</span></div>
             </button>
             <button type="button" class="media-btn" data-action="record-video">
-              <span class="media-icon">Ã°Å¸â€œÂ¹</span>
+              <span class="media-icon">📹</span>
               <div><strong>Record Video</strong><span>Use your camera</span></div>
             </button>
             <button type="button" class="media-btn" data-action="upload-media">
-              <span class="media-icon">Ã°Å¸â€œÂ</span>
+              <span class="media-icon">📁</span>
               <div><strong>Upload Media</strong><span>Select audio/video file</span></div>
             </button>
           </div>
@@ -317,7 +317,7 @@ async function submitAssignment(task, state, type, wrap) {
 
   try {
     if (!task.canvasId) {
-      toast("This is a local task Ã¢â‚¬â€ submit online, or open the Canvas version to submit here.", "err");
+      toast("This is a local task — submit online, or open the Canvas version to submit here.", "err");
       return false;
     }
 
@@ -360,7 +360,7 @@ async function submitAssignment(task, state, type, wrap) {
     return false;
   }
 
-  // Both writes go through the local /api/canvas proxy Ã¢â‚¬â€ the browser never
+  // Both writes go through the local /api/canvas proxy — the browser never
   // talks to Canvas directly, so there is no CORS block and the token stays on
   // this machine.
   async function submitToCanvas(data) {
@@ -378,7 +378,7 @@ async function submitAssignment(task, state, type, wrap) {
     });
     const uploadUrl = pre.upload_url;
     if (!uploadUrl) throw new Error("No upload URL returned.");
-    // 2) POST the multipart body (params + file) Ã¢â‚¬â€ the local server relays it
+    // 2) POST the multipart body (params + file) — the local server relays it
     //    to Canvas so cross-origin rules don't apply.
     const formData = new FormData();
     Object.entries(pre.upload_params || {}).forEach(([k, v]) => formData.append(k, v));
@@ -436,10 +436,10 @@ function handleFiles(files, dropZone) {
     const item = document.createElement("div");
     item.className = "file-item";
     item.innerHTML = `
-      <span class="file-icon">Ã°Å¸â€œâ€ž</span>
+      <span class="file-icon">📄</span>
       <span class="file-name" title="${esc(file.name)}">${esc(file.name)}</span>
       <span class="file-size">(${formatBytes(file.size)})</span>
-      <button type="button" class="file-remove" aria-label="Remove">Ã¢Å“â€¢</button>
+      <button type="button" class="file-remove" aria-label="Remove">✕</button>
     `;
     item.dataset.file = file;
     item.querySelector(".file-remove").addEventListener("click", () => { item.remove(); updateSubmitButton(dropZone.closest(".modal-overlay"), "online_upload"); });
