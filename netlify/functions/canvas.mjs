@@ -39,7 +39,7 @@ export default async (request) => {
     return json({ message: "Invalid Canvas proxy target." }, 400);
   }
 
-  const headers = { Authorization: "Bearer " + token, Accept: "application/json" };
+  const headers = { Authorization: "Bearer " + token, Accept: "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36" };
   const contentType = request.headers.get("Content-Type");
   if (contentType) headers["Content-Type"] = contentType;
   const init = { method: request.method, headers };

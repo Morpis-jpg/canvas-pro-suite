@@ -26,7 +26,7 @@ export async function onRequest(context) {
 
   let upstream;
   try {
-    upstream = await fetch(target, { headers: { Authorization: "Bearer " + token } });
+    upstream = await fetch(target, { headers: { Authorization: "Bearer " + token, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36" } });
   } catch (error) {
     return new Response("Download proxy failed: " + String(error), { status: 502, headers: cors() });
   }
