@@ -53,15 +53,16 @@ def rewrite_pagelink(value, host, scheme="http"):
     parts = []
     for link in value.split(","):
         link = link.strip()
-        m = urllib.parse.urlsplit(link)
+        target = link.split(";")[0].strip().strip("<>")
+        m = urllib.parse.urlsplit(target)
         if not m.path:
             continue
-        # everything after the host (path?query) becomes the proxied path
         path = m.path
         if m.query:
             path += "?" + m.query
         proxied = scheme + "://" + host + "/api/canvas?p=" + urllib.parse.quote(path, safe="")
-        parts.append(f"<{proxied}>; {link.split('>')[1].strip()}" if ";" in link else f"<{proxied}>")
+        rel = ";" + link.split(";", 1)[1].strip() if ";" in link else ""
+        parts.append("<" + proxied + ">" + rel)
     return ", ".join(parts)
 
 class Handler(http.server.SimpleHTTPRequestHandler):
