@@ -1230,6 +1230,23 @@
     const SET = { grid: true, numbers: true, square: false, axes: true };
 
     function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    // Desmos-style |x| input → abs(x) for the mathjs parser (pairs toggle left → right).
+    // `||` outside an absolute value stays boolean-or.
+    function normalizeAbs(text) {
+        const s = String(text);
+        if (!s.includes('|')) return s;
+        let out = '', open = false;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (c === '|') {
+                if (s[i + 1] === '|' && !open) { out += '||'; i++; continue; }
+                out += open ? ')' : 'abs(';
+                open = !open;
+            } else out += c;
+        }
+        if (open) out += ')';
+        return out;
+    }
     function prettyNode(node) {
         if (!node) return '';
         try {
@@ -1254,6 +1271,9 @@
                 if (node.fn && node.fn.name === 'sqrt' && node.args.length === 1) {
                     return '&#8730;<span class="pm-radic">' + prettyNode(node.args[0]) + '</span>';
                 }
+                if (node.fn && node.fn.name === 'abs' && node.args.length === 1) {
+                    return '|' + prettyNode(node.args[0]) + '|';
+                }
                 if (node.fn && node.fn.name === 'pow') {
                     return prettyNode(node.args[0]) + '<sup class="sup">' + prettyNode(node.args[1]) + '</sup>';
                 }
@@ -1266,7 +1286,7 @@
         return escapeHtml(node.toString());
     }
     function prettyInline(text) {
-        try { return prettyNode(math.parse(text)); }
+        try { return prettyNode(math.parse(normalizeAbs(text))); }
         catch (e) { return escapeHtml(String(text)); }
     }
     function fmtNum(v) {
@@ -1401,7 +1421,7 @@
     const CONSTS = new Set(['e', 'i', 'pi', 'tau', 'phi', 'Infinity', 'NaN']);
     function freeVars(text) {
         const syms = new Set();
-        collectSymbols(math.parse(text), syms);
+        collectSymbols(math.parse(normalizeAbs(text)), syms);
         const vars = new Set();
         for (const s of syms) if (!CONSTS.has(s) && !/^\d/.test(s)) vars.add(s);
         return vars;
@@ -1475,13 +1495,13 @@
         if (!p || p.kind === 'err') return;
         if (p.kind === 'reg') { fitRegression(item); return; }
         if (p.kind === 'num') return;
-        try { item.compiled = math.compile((p.kind === 'eq' || p.kind === 'ineq') ? (p.implicit ? '(' + p.lhs + ') - (' + p.rhs + ')' : p.rhs) : p.text); }
+        try { item.compiled = math.compile(normalizeAbs((p.kind === 'eq' || p.kind === 'ineq') ? (p.implicit ? '(' + p.lhs + ') - (' + p.rhs + ')' : p.rhs) : p.text)); }
         catch (e) { item.err = e.message; }
         if (p.kind === 'eq' && p.implicit && /^[yY]$/.test(String(p.lhs).trim())) {
-            try { item.yExpr = math.compile(p.rhs); } catch (e) {}
+            try { item.yExpr = math.compile(normalizeAbs(p.rhs)); } catch (e) {}
         }
         if (p.kind === 'eq' && freeVars(p.rhs).size === 0) {
-            try { item.evaled = math.evaluate(p.rhs); } catch (e) { item.err = e.message; }
+            try { item.evaled = math.evaluate(normalizeAbs(p.rhs)); } catch (e) { item.err = e.message; }
         }
     }
     function removeItem(id) {
@@ -1548,7 +1568,7 @@
     }
     function detectParams(rhs, varName) {
         const syms = new Set();
-        collectSymbols(math.parse(rhs), syms);
+        collectSymbols(math.parse(normalizeAbs(rhs)), syms);
         const filters = new Set(['e', 'i', 'x', 'y', 't', varName]);
         const params = [];
         for (const s of syms) if (s.length === 1 && /[a-z]/.test(s) && !filters.has(s)) params.push(s);
@@ -1563,7 +1583,7 @@
         const vars = freeVars(p.rhs);
         if (vars.has('x')) { item.err = 'Use ' + p.varn + ' in the model (not x)'; return; }
         const params = detectParams(p.rhs, p.varn);
-        try { item.compiled = math.compile(p.rhs); }
+        try { item.compiled = math.compile(normalizeAbs(p.rhs)); }
         catch (e) { item.err = 'Bad model: ' + e.message; return; }
 
         if (params.length === 0) {
@@ -1787,7 +1807,7 @@
         if (p.kind === 'err') { cardHead(card, it, `<span class="expr err">${escapeHtml(p.msg)}</span>`); return; }
         if (p.kind === 'num') {
             let val = null, err = null;
-            try { val = math.evaluate(p.text); }
+            try { val = math.evaluate(normalizeAbs(p.text)); }
             catch (e) { err = e.message; }
             if (err) { cardHead(card, it, `<span class="expr err">${escapeHtml(p.text)}</span>`); return; }
             const txt = typeof val === 'number' ? fmtNum(val) : (val && val.toTex ? val.toTex() : String(val));
@@ -1941,7 +1961,7 @@
             ? (parsed.implicit ? '(' + parsed.lhs + ') - (' + parsed.rhs + ')' : parsed.rhs)
             : (parsed.kind === 'reg' ? parsed.rhs : parsed.text);
         try {
-            const p = { compiled: math.compile(src), parsed, color: '#8585a0' };
+            const p = { compiled: math.compile(normalizeAbs(src)), parsed, color: '#8585a0' };
             if (parsed.kind === 'reg') p.noFit = true;
             return p;
         } catch (e) { return null; }
@@ -3007,8 +3027,8 @@
                 else if (c === '=' && depth === 0) { eqIdx = i; break; }
             }
             let node, isEq = false;
-            if (eqIdx >= 0) { node = math.parse('(' + raw.slice(0, eqIdx) + ') - (' + raw.slice(eqIdx + 1) + ')'); isEq = true; }
-            else node = math.parse(raw);
+            if (eqIdx >= 0) { node = math.parse(normalizeAbs('(' + raw.slice(0, eqIdx) + ') - (' + raw.slice(eqIdx + 1) + ')')); isEq = true; }
+            else node = math.parse(normalizeAbs(raw));
             const res = ops[fnKey](node, v);
             let tex;
             if (res && typeof res.tex === 'string') tex = res.tex;

@@ -98,7 +98,7 @@ export async function render(_state, root, isStale = () => false) {
   if (isStale()) return;
   const mount = root.querySelector("#calculatorMount");
   const shadow = mount.attachShadow({ mode: "open" });
-  const source = await fetch("tools/calculator/index.html?embedded-source=1").then((r) => {
+  const source = await fetch(`tools/calculator/index.html?embedded-source=1&v=${window.__rev || "1"}`).then((r) => {
     if (!r.ok) throw new Error("Could not load calculator source.");
     return r.text();
   });
