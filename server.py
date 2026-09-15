@@ -35,6 +35,11 @@ def check_branch_ok(fail_hard=True):
     if branch is None:
         print("Warning: %s is not a git checkout — cannot enforce the %r branch." % (PROJECT_DIR, ALLOWED_BRANCH))
         return None
+    if branch in ("HEAD",):
+        # Hosted deploys (e.g. Render) check out a detached commit, not a named
+        # branch; nothing to enforce there.
+        print("Note: detached checkout detected — skipping the %r branch guard." % ALLOWED_BRANCH)
+        return None
     if branch == ALLOWED_BRANCH:
         return branch
     if fail_hard:
@@ -648,10 +653,10 @@ def pick_port():
     return None
 
 def main():
-    branch = check_branch_ok(fail_hard=True)
-    print("Serving branch: %s" % branch, flush=True)
-
     env_port = os.environ.get("PORT")
+    branch = check_branch_ok(fail_hard=not env_port)
+    print("Serving branch: %s" % (branch or "detached"), flush=True)
+
     port = int(env_port) if env_port else pick_port()
     if port is None:
         print("No free port found in 8000-8019. Close something and retry.")
