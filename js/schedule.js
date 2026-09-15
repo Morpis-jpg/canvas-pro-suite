@@ -166,13 +166,23 @@ export function generateSchedule(courses, tasks) {
     }
   }
 
-  // Exams: weighted prep in the 3 days before the exam.
+  // Exams: weighted prep over the 3 days leading up to the test. Prep never
+  // lands on test day itself — the last prep session is the day before.
   for (const r of exams) {
-    const dueIdx = Math.min(HORIZON - 1, Math.max(0, daysUntil(r.task.dueAt)));
-    const startIdx = Math.max(0, dueIdx - 3);
+    const dueDay = r.task.dueAt ? new Date(r.task.dueAt) : null;
+    if (!dueDay) continue;
+    dueDay.setHours(0, 0, 0, 0);
+    const dueDayIdx = Math.round((dueDay - today) / 86400000);
+    let startIdx = dueDayIdx - 3;
+    let endIdx = dueDayIdx - 1;
+    // Exam further out than the visible window: prep across the tail of the
+    // horizon (all of it still before test day).
+    if (startIdx > HORIZON - 1) { startIdx = Math.max(0, HORIZON - 4); endIdx = HORIZON - 1; }
+    startIdx = Math.max(0, startIdx);
+    endIdx = Math.min(HORIZON - 1, endIdx);
     const range = [];
-    for (let i = startIdx; i <= Math.min(dueIdx, HORIZON - 1); i++) range.push(i);
-    const weights = range.map((i, k) => (k === range.length - 1 && i === dueIdx ? 0.5 : 1 + k));
+    for (let i = startIdx; i <= endIdx; i++) range.push(i);
+    const weights = range.map((i, k) => 1 + k);
     const wsum = weights.reduce((a, b) => a + b, 0);
     const study = targetMinutes(r.task, byCourse);
     for (let k = 0; k < range.length; k++) {

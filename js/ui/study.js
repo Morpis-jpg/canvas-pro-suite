@@ -55,7 +55,7 @@ export function render(state, root) {
 
   root.innerHTML = `
     <h1>Study Plan</h1>
-    <p class="subtitle">Homework is slotted the day before it's due; test prep ramps up over the 3 days before an exam. Time scales with points, weight, and difficulty.</p>
+    <p class="subtitle">Homework is slotted the day before it's due; test prep ramps up over the 3 days leading up to an exam and never lands on test day. Time scales with points, weight, and difficulty.</p>
 
     <div class="grid grid-3 mt">
       <div class="card"><div class="small muted">Planned this week</div><div class="stat"><b>${Math.round(sum.totalMins / 60 * 10) / 10} h</b></div></div>
