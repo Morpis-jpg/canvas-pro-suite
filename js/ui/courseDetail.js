@@ -149,7 +149,7 @@ function taskRow(t, doneSet, isOverdue) {
   const overdue = isOverdue || (t.dueAt && new Date(t.dueAt) < new Date() && !t.submitted && !doneSet.has(t.id));
   const typeTag = { exam: "tag-red", quiz: "tag-yellow", project: "tag-purple", assignment: "tag-blue" }[t.type] || "tag-blue";
   return `
-    <div class="task-row ${overdue ? "overdue" : ""}" data-id="${esc(t.id)}">
+    <div class="task-row ${overdue ? "overdue" : ""}" data-id="${esc(t.id)}" data-type="${esc(t.type || "assignment")}">
       <input type="checkbox" class="done-box" ${doneSet.has(t.id) ? "checked" : ""} title="${doneSet.has(t.id) ? "Un-mark done" : "Mark done"}" aria-label="${doneSet.has(t.id) ? "Un-mark done" : "Mark done"}">
       <div class="task-info">
         <div class="task-title">${esc(t.title)}</div>
