@@ -14,6 +14,11 @@ AGENT_TOOLS = {
     "mark_done", "unmark", "chart",
 }
 
+# Installed Ollama model names + capabilities, cached briefly so every agent
+# call doesn't re-list the tag catalog. Populated lazily from /api/tags.
+OLLAMA_TAGS = {}
+OLLAMA_TAGS_TTL = 20.0
+
 # The owner requires this app to always run the beta branch. The server serves
 # straight from the checkout, so refuse to start on any other branch and warn
 # loudly if the branch is switched while the server is up.
@@ -361,22 +366,63 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read())
 
+    def _ollama_tags(self, ollama):
+        # Installed model names + capabilities from the Ollama catalog.
+        key = ollama.rstrip("/")
+        now = time.time()
+        cached = OLLAMA_TAGS.get(key)
+        if cached and now - cached[0] < OLLAMA_TAGS_TTL:
+            return cached[1], cached[2]
+        names, caps = [], {}
+        try:
+            req = urllib.request.Request(key + "/api/tags")
+            with urllib.request.urlopen(req, timeout=8) as r:
+                data = json.loads(r.read())
+            for m in data.get("models") or []:
+                nm = (m.get("name") or "").strip()
+                if not nm:
+                    continue
+                names.append(nm)
+                caps[nm] = set(m.get("capabilities") or [])
+        except Exception:
+            pass
+        names.sort()
+        OLLAMA_TAGS[key] = (now, names, caps)
+        return names, caps
+
+    def _ollama_model_order(self, ollama, requested):
+        # Requested model first (if it's actually installed), then every model
+        # that advertises tool support, then the rest. "auto" picks whatever
+        # tool-capable model is installed.
+        names, caps = self._ollama_tags(ollama)
+        want = (requested or "auto").strip()
+        ordered, seen = [], set()
+
+        def push(n):
+            if n and n not in seen:
+                seen.add(n)
+                ordered.append(n)
+
+        if want and want != "auto" and want in names:
+            push(want)
+        with_tools = [n for n in names if "tools" in caps.get(n, set())]
+        for n in with_tools + [n for n in names if "tools" not in caps.get(n, set())]:
+            push(n)
+        return ordered
+
     def _ollama_chat(self, ollama, model, messages):
-        # If the requested model (or the default) isn't pulled, walk a
-        # fallback list so an empty Ollama install still works.
-        candidates = [model, "gemma4:e2b", "gemma2", "gemma2:2b", "llama3.2"]
-        seen = set()
+        candidates = self._ollama_model_order(ollama, model)
         last_err = None
         for m in candidates:
-            if m in seen:
-                continue
-            seen.add(m)
             out = self._ollama_chat_one(ollama, m, messages)
             if out.startswith("Tool backend error: HTTP 404"):
                 last_err = out
                 continue
             return out
-        return last_err or "No Ollama model available."
+        if last_err:
+            return last_err
+        return ("No Ollama model available at %s. Install Ollama, then pull one, "
+                "e.g.  ollama pull gemma4:31b-cloud" % ollama.rstrip("/"))
 
     def _ollama_chat_one(self, ollama, model, messages):
         payload = {
@@ -407,7 +453,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         token = (self.headers.get("X-AI-Token") or "").strip()
         base = (self.headers.get("X-AI-Base") or "").strip().rstrip("/")
         ollama = (self.headers.get("X-AI-Ollama") or "http://localhost:11434").strip().rstrip("/")
-        model = (self.headers.get("X-AI-Model") or "gemma4:e2b").strip()
+        model = (self.headers.get("X-AI-Model") or "auto").strip()
         sid = (self.headers.get("X-AI-Session") or "").strip()
         reset = bool(payload.get("reset"))
         text = str(payload.get("message") or "").strip()

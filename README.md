@@ -84,7 +84,7 @@ No install and no build step — Python 3 standard library only.
 | Static app | repo root (`index.html`, `css/`, `js/`, `tools/calculator/`, `vendor/`) |
 | Proxy (Node) | `functions/api/*.js` (Cloudflare Pages), `netlify/functions/*.mjs` (Netlify) |
 | Proxy (Python) | `api/*.py` (Vercel), `server.py` (local / Render) |
-| Deploy docs | [DEPLOY.md](DEPLOY.md) |
+| Deploy docs | [DEPLOY.md](DEPLOY.md) · self-host/Docker guide: [INSTALL.md](INSTALL.md) |
 
 Every proxy implements the same routes:
 
