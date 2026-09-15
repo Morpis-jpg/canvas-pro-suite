@@ -8,3 +8,6 @@ __pycache__/
 dist/
 .vercel
 .env*
+
+# Local Netlify folder
+.netlify
