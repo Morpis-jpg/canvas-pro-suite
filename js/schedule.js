@@ -184,7 +184,7 @@ export function generateSchedule(courses, tasks) {
       const take = Math.min(d.remaining, minutes);
       d.slots.push({
         kind: "study",
-        what: `${r.task.courseName} — ${r.task.title}`,
+        what: r.task.courseName ? `${r.task.courseName} — ${r.task.title}` : r.task.title,
         courseId: r.task.courseId,
         taskId: r.task.id,
         mins: take,
