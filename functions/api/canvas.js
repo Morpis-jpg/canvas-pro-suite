@@ -43,7 +43,12 @@ export async function onRequest(context) {
     return json({ message: "Invalid Canvas proxy target." }, 400);
   }
 
-  const headers = { Authorization: "Bearer " + token, Accept: "application/json" };
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+  };
   const contentType = request.headers.get("Content-Type");
   if (contentType) headers["Content-Type"] = contentType;
   const init = { method: request.method, headers };
@@ -54,6 +59,15 @@ export async function onRequest(context) {
     upstream = await fetch(target.toString(), init);
   } catch (error) {
     return json({ message: "Canvas proxy failed: " + String(error) }, 502);
+  }
+
+  const upstreamType = upstream.headers.get("Content-Type") || "";
+  if (upstream.status === 403 && upstreamType.includes("text/html")) {
+    await upstream.arrayBuffer();
+    return json({
+      message: "Canvas is blocking this mirror's network (Cloudflare). Use https://canvas-pro-suite.netlify.app or run the app locally (npm start) for Canvas data.",
+      blocked: true,
+    }, 502);
   }
 
   const out = new Headers(cors());
