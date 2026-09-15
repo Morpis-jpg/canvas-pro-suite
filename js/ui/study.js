@@ -1,5 +1,5 @@
-import { esc } from "../utils.js";
-import { generateSchedule, scheduleSummary, courseFactors } from "../schedule.js";
+import { esc, toast } from "../utils.js";
+import { generateSchedule, scheduleSummary, courseFactors, windowRange } from "../schedule.js";
 import { settings, saveSettings, doneIds, timeLogs } from "../storage.js";
 
 export function render(state, root) {
@@ -14,6 +14,12 @@ export function render(state, root) {
   const sched = generateSchedule(courses, open);
   const sum = scheduleSummary(sched.days);
   const s0 = s.studySlots[0] || { start: "18:00", end: "21:00", label: "Evening" };
+  const win = windowRange(s0);
+  const winNote = win.mins === 0
+    ? "Start and end are the same, so the plan has no room to place anything. Pick an end time after the start."
+    : win.endM > 1440
+      ? "Ends after midnight — the window runs into the next day's early hours."
+      : "";
 
   const dayCards = sched.days.map((d) => `
     <div class="card day-card">
@@ -70,6 +76,7 @@ export function render(state, root) {
               <input id="winEnd" type="time" value="${s0.end}" style="padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text)" />
             </span>
           </div>
+          ${winNote ? `<p class="small muted" style="margin:-2px 0 8px">${esc(winNote)}</p>` : ""}
           <label class="row" style="margin-bottom:6px">
             <span class="small muted" style="flex:1">Daily max (min)</span>
             <input id="dailyMax" type="number" min="30" max="600" step="15" value="${s.maxStudyMinutesPerDay}" style="width:90px;padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text)" />
@@ -102,12 +109,17 @@ export function render(state, root) {
 
   root.querySelector("#saveStudy").addEventListener("click", () => {
     const st = settings();
-    st.studySlots = [{ start: root.querySelector("#winStart").value, end: root.querySelector("#winEnd").value, label: "Evening" }];
+    const slot = { start: root.querySelector("#winStart").value, end: root.querySelector("#winEnd").value, label: "Evening" };
+    st.studySlots = [slot];
     st.maxStudyMinutesPerDay = +root.querySelector("#dailyMax").value;
     st.baseMinutesPerPoint = +root.querySelector("#mpp").value;
     st.breakEveryMinutes = +root.querySelector("#breakEvery").value;
     st.breakMinutes = +root.querySelector("#breakLen").value;
     saveSettings();
+    const r = windowRange(slot);
+    if (r.mins === 0) toast("Study window is zero-length — pick an end time after the start.", "err");
+    else if (r.endM > 1440) toast("Saved — the study window runs past midnight.", "ok");
+    else toast("Study plan updated.", "ok");
     render(state, root);
   });
 

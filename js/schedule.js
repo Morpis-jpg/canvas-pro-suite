@@ -59,16 +59,27 @@ function targetMinutes(task, byCourse) {
 }
 
 function minute(str) {
-  const [h, m] = str.split(":").map(Number);
-  return h * 60 + (m || 0);
+  const [h, m] = String(str ?? "").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
 }
 
 function fmtClock(min) {
+  min = ((min % 1440) + 1440) % 1440;
   const h = Math.floor(min / 60);
   const m = min % 60;
   const ampm = h >= 12 ? "PM" : "AM";
   const hh = h % 12 === 0 ? 12 : h % 12;
   return `${hh}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+// A window like 22:00–01:00 crosses midnight: treat the end as next-day so the
+// length stays positive instead of collapsing the whole plan to zero minutes.
+export function windowRange(slot = {}) {
+  const startM = minute(slot.start);
+  let endM = minute(slot.end);
+  const overnight = endM < startM;
+  if (overnight) endM += 1440;
+  return { startM, endM, overnight, mins: Math.max(0, endM - startM) };
 }
 
 function breakConfig(c = settings()) {
@@ -95,7 +106,7 @@ export function generateSchedule(courses, tasks) {
     date.setDate(today.getDate() + i);
     const avail = Math.min(
       conf.maxStudyMinutesPerDay,
-      slots.reduce((sum, s) => sum + Math.max(0, minute(s.end) - minute(s.start)), 0),
+      slots.reduce((sum, s) => sum + windowRange(s).mins, 0),
     );
     return {
       index: i,
@@ -189,7 +200,10 @@ export function generateSchedule(courses, tasks) {
     d.slots.sort((a, b) => b.priority - a.priority);
 
     const windows = slots
-      .map((s, i) => ({ ...s, startM: minute(s.start), endM: minute(s.end), label: s.label || `Block ${i + 1}` }))
+      .map((s, i) => {
+        const r = windowRange(s);
+        return { ...s, startM: r.startM, endM: r.endM, label: s.label || `Block ${i + 1}` };
+      })
       .sort((a, b) => a.startM - b.startM);
 
     let cursor = 0;
